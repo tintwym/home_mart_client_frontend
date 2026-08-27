@@ -7,7 +7,6 @@ import { getListings } from '@/lib/api';
 import { useSharedProps } from '@/lib/bootstrap';
 import { ListingCard, type ListingCardListing } from '@/components/listing-card';
 import { PageError, PageHeader, PageLoading } from '@/components/page-kit';
-import { SiteSearchBar } from '@/components/site-search-bar';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 
@@ -53,9 +52,6 @@ export function HomePageContent() {
                 <p className="mt-2 max-w-lg text-muted-foreground">
                     Browse local listings, message sellers, and checkout securely.
                 </p>
-                <div className="mt-6 max-w-xl">
-                    <SiteSearchBar defaultQuery={searchQuery} />
-                </div>
                 <div className="mt-6 flex flex-wrap gap-3">
                     <Button asChild>
                         <Link href="/listings/create">

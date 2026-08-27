@@ -1,17 +1,30 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 
-/** Glass overlay on top of the shop shell — auth feels like a dialog, not a separate page. */
+/** Full-viewport glass overlay — dims navbar, content, and footer together. */
 export function AuthModalLayout({ children }: { children: React.ReactNode }) {
+    useEffect(() => {
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = prev;
+        };
+    }, []);
+
     return (
-        <div className="fixed inset-x-0 bottom-0 top-14 z-50 flex items-center justify-center sm:top-16">
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+            role="dialog"
+            aria-modal="true"
+        >
             <Link
                 href="/"
-                className="absolute inset-0 bg-background/40 backdrop-blur-md"
+                className="absolute inset-0 bg-background/55 backdrop-blur-md"
                 aria-label="Close"
             />
-            <div className="relative z-10 w-full max-w-md px-4 py-6 animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative z-10 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
                 {children}
             </div>
         </div>

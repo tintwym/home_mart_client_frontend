@@ -12,6 +12,20 @@ type SiteSearchBarProps = {
     compact?: boolean;
 };
 
+const SEARCH_COPY = {
+    placeholder: 'Search Home Mart',
+    aria: 'Search listings',
+    button: 'Search',
+} as const;
+
+function resolveTranslation(
+    translated: string,
+    key: string,
+    fallback: string,
+): string {
+    return translated === key ? fallback : translated;
+}
+
 export function SiteSearchBar({
     className,
     defaultQuery = '',
@@ -25,6 +39,22 @@ export function SiteSearchBar({
     useEffect(() => {
         setQuery(defaultQuery);
     }, [defaultQuery]);
+
+    const placeholder = resolveTranslation(
+        t('search.placeholder'),
+        'search.placeholder',
+        SEARCH_COPY.placeholder,
+    );
+    const ariaLabel = resolveTranslation(
+        t('search.aria'),
+        'search.aria',
+        SEARCH_COPY.aria,
+    );
+    const buttonLabel = resolveTranslation(
+        t('search.button'),
+        'search.button',
+        SEARCH_COPY.button,
+    );
 
     return (
         <form
@@ -42,12 +72,12 @@ export function SiteSearchBar({
                     name="q"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder={t('search.placeholder')}
+                    placeholder={placeholder}
                     className={cn(
                         'min-w-0 flex-1 border-0 bg-transparent pl-3 text-sm outline-none placeholder:text-muted-foreground',
                         compact ? 'py-2 pr-9' : 'py-2.5 pr-10 md:pl-4',
                     )}
-                    aria-label={t('search.aria')}
+                    aria-label={ariaLabel}
                 />
                 <button
                     type="submit"
@@ -55,7 +85,7 @@ export function SiteSearchBar({
                         'absolute top-0 right-0 flex h-full items-center justify-center bg-transparent text-muted-foreground transition-colors hover:text-foreground',
                         compact ? 'w-9' : 'w-10',
                     )}
-                    aria-label={t('search.button')}
+                    aria-label={buttonLabel}
                 >
                     <Search className="size-4 shrink-0 md:size-5" />
                 </button>
