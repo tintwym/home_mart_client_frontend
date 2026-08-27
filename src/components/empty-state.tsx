@@ -1,4 +1,4 @@
-import { Link } from '@/lib/inertia-compat';
+import { Link } from '@/lib/app-client';
 import { motion } from 'motion/react';
 import { ArrowRight, ShoppingBag, Heart, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -50,23 +50,14 @@ export default [
         },
     },
     {
-        files: ['src/lib/inertia-compat.tsx'],
+        files: ['src/lib/app-client.tsx'],
         rules: {
             'react-hooks/refs': 'off',
             'react-hooks/set-state-in-effect': 'off',
         },
     },
     {
-        ignores: [
-            'node_modules',
-            '.next',
-            'out',
-            'dist',
-            'public',
-            'src/routes',
-            'src/wayfinder',
-            'src/actions',
-        ],
+        ignores: ['node_modules', '.next', 'out'],
     },
     prettier,
 ];

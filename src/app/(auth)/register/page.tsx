@@ -5,19 +5,44 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { AuthCard } from '@/components/page-kit';
+import { ValidatedField } from '@/components/validated-field';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useFieldValidation } from '@/hooks/use-field-validation';
+import {
+    validateEmail,
+    validateName,
+    validatePassword,
+    validatePasswordConfirmation,
+} from '@/lib/form-validation';
 
 export default function RegisterPage() {
     const { register } = useAuth();
     const router = useRouter();
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [passwordConfirmation, setPasswordConfirmation] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
+
+    const {
+        values,
+        errors,
+        setValue,
+        blurField,
+        validateAll,
+        clearErrors,
+    } = useFieldValidation(
+        {
+            name: '',
+            email: '',
+            password: '',
+            passwordConfirmation: '',
+        },
+        {
+            name: (value) => validateName(value),
+            email: (value) => validateEmail(value),
+            password: (value) => validatePassword(value),
+            passwordConfirmation: (value, all) =>
+                validatePasswordConfirmation(all.password, value),
+        },
+    );
 
     return (
         <AuthCard
@@ -34,16 +59,21 @@ export default function RegisterPage() {
         >
             <form
                 className="space-y-4"
+                noValidate
                 onSubmit={async (e) => {
                     e.preventDefault();
+                    if (!validateAll()) {
+                        return;
+                    }
                     setBusy(true);
                     setError(null);
+                    clearErrors();
                     try {
                         await register({
-                            name,
-                            email,
-                            password,
-                            password_confirmation: passwordConfirmation,
+                            name: values.name.trim(),
+                            email: values.email.trim(),
+                            password: values.password,
+                            password_confirmation: values.passwordConfirmation,
                         });
                         router.push('/');
                     } catch (err) {
@@ -57,48 +87,54 @@ export default function RegisterPage() {
                     }
                 }}
             >
-                <div className="space-y-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                        id="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="confirm">Confirm password</Label>
-                    <Input
-                        id="confirm"
-                        type="password"
-                        value={passwordConfirmation}
-                        onChange={(e) =>
-                            setPasswordConfirmation(e.target.value)
-                        }
-                        required
-                    />
-                </div>
-                {error ? <p className="text-sm text-destructive">{error}</p> : null}
+                <ValidatedField
+                    id="name"
+                    label="Name"
+                    autoComplete="name"
+                    value={values.name}
+                    onChange={(value) => setValue('name', value)}
+                    onBlur={() => blurField('name')}
+                    error={errors.name}
+                    disabled={busy}
+                />
+                <ValidatedField
+                    id="email"
+                    label="Email"
+                    type="email"
+                    autoComplete="email"
+                    value={values.email}
+                    onChange={(value) => setValue('email', value)}
+                    onBlur={() => blurField('email')}
+                    error={errors.email}
+                    disabled={busy}
+                />
+                <ValidatedField
+                    id="password"
+                    label="Password"
+                    type="password"
+                    autoComplete="new-password"
+                    value={values.password}
+                    onChange={(value) => setValue('password', value)}
+                    onBlur={() => blurField('password')}
+                    error={errors.password}
+                    disabled={busy}
+                />
+                <ValidatedField
+                    id="confirm"
+                    label="Confirm password"
+                    type="password"
+                    autoComplete="new-password"
+                    value={values.passwordConfirmation}
+                    onChange={(value) =>
+                        setValue('passwordConfirmation', value)
+                    }
+                    onBlur={() => blurField('passwordConfirmation')}
+                    error={errors.passwordConfirmation}
+                    disabled={busy}
+                />
+                {error ? (
+                    <p className="text-sm text-destructive">{error}</p>
+                ) : null}
                 <Button type="submit" className="w-full" disabled={busy}>
                     {busy ? 'Creating…' : 'Register'}
                 </Button>

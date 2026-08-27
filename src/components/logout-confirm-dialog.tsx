@@ -1,4 +1,4 @@
-import { router } from '@/lib/inertia-compat';
+import { router } from '@/lib/app-client';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -9,7 +9,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { useTranslations } from '@/hooks/use-translations';
-import { logout } from '@/routes';
+import { paths } from '@/lib/paths';
 
 type Props = {
     open: boolean;
@@ -22,7 +22,7 @@ export function LogoutConfirmDialog({ open, onOpenChange, onLogout }: Props) {
     const handleLogout = () => {
         onLogout?.();
         onOpenChange(false);
-        router.post(logout());
+        router.post(paths.logout);
     };
 
     return (

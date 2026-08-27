@@ -1,4 +1,4 @@
-import { Link } from '@/lib/inertia-compat';
+import { Link } from '@/lib/app-client';
 import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSettingsNavLinks } from '@/layouts/settings/use-settings-nav-links';

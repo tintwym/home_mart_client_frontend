@@ -1,4 +1,4 @@
-import { Link } from '@/lib/inertia-compat';
+import { Link } from '@/lib/app-client';
 import { ChevronLeft } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
@@ -7,7 +7,7 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useSettingsNavLinks } from '@/layouts/settings/use-settings-nav-links';
 import { useTranslations } from '@/hooks/use-translations';
 import { cn, toUrl } from '@/lib/utils';
-import { index as settingsIndex } from '@/routes/settings';
+import { paths } from '@/lib/paths';
 
 type SettingsLayoutProps = PropsWithChildren<{
     /** Title in the mobile top bar (back goes to the settings hub). */
@@ -43,7 +43,7 @@ export default function SettingsLayout({
                     asChild
                 >
                     <Link
-                        href={settingsIndex()}
+                        href={paths.settings.root}
                         prefetch
                         className="inline-flex size-10 items-center justify-center"
                         aria-label={t('settings.back_to_settings_menu')}

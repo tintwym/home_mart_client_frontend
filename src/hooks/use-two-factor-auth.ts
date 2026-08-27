@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
-import RecoveryCodeController from '@/actions/Laravel/Fortify/Http/Controllers/RecoveryCodeController';
-import TwoFactorQrCodeController from '@/actions/Laravel/Fortify/Http/Controllers/TwoFactorQrCodeController';
-import TwoFactorSecretKeyController from '@/actions/Laravel/Fortify/Http/Controllers/TwoFactorSecretKeyController';
+import { apiFetch } from '@/lib/api';
+import { apiPaths } from '@/lib/paths';
 import type { TwoFactorSecretKey, TwoFactorSetupData } from '@/types';
 
 export type UseTwoFactorAuthReturn = {
@@ -20,18 +19,6 @@ export type UseTwoFactorAuthReturn = {
 
 export const OTP_MAX_LENGTH = 6;
 
-const fetchJson = async <T>(url: string): Promise<T> => {
-    const response = await fetch(url, {
-        headers: { Accept: 'application/json' },
-    });
-
-    if (!response.ok) {
-        throw new Error(`Failed to fetch: ${response.status}`);
-    }
-
-    return response.json();
-};
-
 export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
     const [qrCodeSvg, setQrCodeSvg] = useState<string | null>(null);
     const [manualSetupKey, setManualSetupKey] = useState<string | null>(null);
@@ -45,8 +32,8 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
 
     const fetchQrCode = useCallback(async (): Promise<void> => {
         try {
-            const { svg } = await fetchJson<TwoFactorSetupData>(
-                TwoFactorQrCodeController.show.url(),
+            const { svg } = await apiFetch<TwoFactorSetupData>(
+                `/api${apiPaths.twoFactorQrCode}`,
             );
             setQrCodeSvg(svg);
         } catch {
@@ -57,8 +44,8 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
 
     const fetchSetupKey = useCallback(async (): Promise<void> => {
         try {
-            const { secretKey: key } = await fetchJson<TwoFactorSecretKey>(
-                TwoFactorSecretKeyController.show.url(),
+            const { secretKey: key } = await apiFetch<TwoFactorSecretKey>(
+                `/api${apiPaths.twoFactorSecretKey}`,
             );
             setManualSetupKey(key);
         } catch {
@@ -80,8 +67,8 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
     const fetchRecoveryCodes = useCallback(async (): Promise<void> => {
         try {
             clearErrors();
-            const codes = await fetchJson<string[]>(
-                RecoveryCodeController.index.url(),
+            const codes = await apiFetch<string[]>(
+                `/api${apiPaths.twoFactorRecoveryCodes}`,
             );
             setRecoveryCodesList(codes);
         } catch {

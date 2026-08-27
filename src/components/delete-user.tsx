@@ -1,6 +1,6 @@
-import { Form } from '@/lib/inertia-compat';
+import { Form } from '@/lib/app-client';
 import { useRef } from 'react';
-import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
+import { apiPaths } from '@/lib/paths';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -56,7 +56,7 @@ export default function DeleteUser() {
                         </DialogDescription>
 
                         <Form
-                            action={ProfileController.destroy.url()}
+                            action={apiPaths.profileDestroy}
                             method="delete"
                             options={{
                                 preserveScroll: true,

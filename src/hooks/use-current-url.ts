@@ -1,14 +1,14 @@
-import type { InertiaLinkProps } from '@/lib/inertia-compat';
-import { usePage } from '@/lib/inertia-compat';
+import { usePathname } from 'next/navigation';
+import type { AppHref } from '@/types/href';
 import { toUrl } from '@/lib/utils';
 
 export type IsCurrentUrlFn = (
-    urlToCheck: NonNullable<InertiaLinkProps['href']>,
+    urlToCheck: AppHref,
     currentUrl?: string,
 ) => boolean;
 
 export type WhenCurrentUrlFn = <TIfTrue, TIfFalse = null>(
-    urlToCheck: NonNullable<InertiaLinkProps['href']>,
+    urlToCheck: AppHref,
     ifTrue: TIfTrue,
     ifFalse?: TIfFalse,
 ) => TIfTrue | TIfFalse;
@@ -20,11 +20,10 @@ export type UseCurrentUrlReturn = {
 };
 
 export function useCurrentUrl(): UseCurrentUrlReturn {
-    const page = usePage();
-    const currentUrlPath = new URL(page.url, window?.location.origin).pathname;
+    const currentUrlPath = usePathname() || '/';
 
     const isCurrentUrl: IsCurrentUrlFn = (
-        urlToCheck: NonNullable<InertiaLinkProps['href']>,
+        urlToCheck: AppHref,
         currentUrl?: string,
     ) => {
         const urlToCompare = currentUrl ?? currentUrlPath;
@@ -43,7 +42,7 @@ export function useCurrentUrl(): UseCurrentUrlReturn {
     };
 
     const whenCurrentUrl: WhenCurrentUrlFn = <TIfTrue, TIfFalse = null>(
-        urlToCheck: NonNullable<InertiaLinkProps['href']>,
+        urlToCheck: AppHref,
         ifTrue: TIfTrue,
         ifFalse: TIfFalse = null as TIfFalse,
     ): TIfTrue | TIfFalse => {

@@ -1,8 +1,8 @@
-import { Link } from '@/lib/inertia-compat';
+import { Link } from '@/lib/app-client';
 import { X } from 'lucide-react';
 import { motion } from 'motion/react';
 import AppLogoIcon from '@/components/app-logo-icon';
-import { dashboard } from '@/routes';
+import { paths } from '@/lib/paths';
 import type { AuthLayoutProps } from '@/types';
 
 export default function AuthSimpleLayout({
@@ -49,7 +49,7 @@ export default function AuthSimpleLayout({
 
             {/* Transparent backdrop close area (clicking outside the modal navigates back to dashboard) */}
             <Link
-                href={dashboard()}
+                href={paths.home}
                 className="absolute inset-0 -z-10 cursor-default"
                 aria-hidden="true"
             />
@@ -62,7 +62,7 @@ export default function AuthSimpleLayout({
             >
                 {/* Close Button */}
                 <Link
-                    href={dashboard()}
+                    href={paths.home}
                     aria-label="Close"
                     className="absolute top-4 right-4 flex size-8 cursor-pointer items-center justify-center rounded-full border border-border/40 text-muted-foreground transition-all duration-300 hover:rotate-90 hover:bg-accent hover:text-foreground"
                 >
@@ -72,7 +72,7 @@ export default function AuthSimpleLayout({
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col items-center gap-3">
                         <Link
-                            href={dashboard()}
+                            href={paths.home}
                             className="flex flex-col items-center gap-1.5 font-medium transition-transform hover:scale-105"
                         >
                             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 dark:bg-primary/20">

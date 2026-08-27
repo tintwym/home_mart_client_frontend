@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo } from 'react';
-import { router, usePage } from '@/lib/inertia-compat';
+import { router } from '@/lib/app-client'
+import { useSharedProps } from '@/lib/bootstrap';
 import type { SharedCurrency, SharedData } from '@/types';
 import { useTranslations } from '@/hooks/use-translations';
 import { useCurrency } from '@/hooks/use-currency';
@@ -38,7 +39,7 @@ export function LocalizationProvider({
 }: {
     children: React.ReactNode;
 }) {
-    const { props } = usePage<SharedData>();
+    const props = useSharedProps();
     const { t, locale } = useTranslations();
     const { currency, currencies, formatPrice } = useCurrency();
     const region = props.region || 'US';

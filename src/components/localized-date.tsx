@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { usePage } from '@/lib/inertia-compat';
+import { useSharedProps } from '@/lib/bootstrap';
 import type { SharedData } from '@/types';
 
 interface LocalizedDateProps {
@@ -26,7 +26,7 @@ export function LocalizedDate({
     showTime = false,
     className,
 }: LocalizedDateProps) {
-    const { props } = usePage<SharedData>();
+    const props = useSharedProps();
     const locale = props.locale || 'en';
 
     const formattedDate = useMemo(() => {

@@ -1,4 +1,4 @@
-import { Link } from '@/lib/inertia-compat';
+import { Link } from '@/lib/app-client';
 import { LogOut, Settings } from 'lucide-react';
 import {
     DropdownMenuGroup,
@@ -9,7 +9,7 @@ import {
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { useTranslations } from '@/hooks/use-translations';
-import { index as settingsIndex } from '@/routes/settings';
+import { paths } from '@/lib/paths';
 import type { User } from '@/types';
 
 type Props = {
@@ -33,7 +33,7 @@ export function UserMenuContent({ user, onOpenLogout }: Props) {
                 <DropdownMenuItem asChild>
                     <Link
                         className="block w-full cursor-pointer"
-                        href={settingsIndex()}
+                        href={paths.settings.root}
                         prefetch
                         onClick={cleanup}
                     >

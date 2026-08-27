@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingCart, X, Trash2, Check, ArrowRight } from 'lucide-react';
-import { Link, router, usePage } from '@/lib/inertia-compat';
+import { Link, router } from '@/lib/app-client'
+import { useSharedProps } from '@/lib/bootstrap';
 import { useCurrency } from '@/hooks/use-currency';
 import { useCart } from '@/hooks/use-cart';
 import { useTranslations } from '@/hooks/use-translations';
@@ -16,7 +17,7 @@ const CONDITION_KEYS: Record<string, string> = {
 };
 
 export function CartDrawer() {
-    const { auth } = usePage<SharedData>().props;
+    const { auth } = useSharedProps();
     const { formatPrice, formatAmount, toDisplayAmount } = useCurrency();
     const { t } = useTranslations();
     const [isOpen, setIsOpen] = useState(false);

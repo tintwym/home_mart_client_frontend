@@ -1,4 +1,5 @@
-import { Link, usePage, router } from '@/lib/inertia-compat';
+import { Link, router } from '@/lib/app-client';
+import { usePathname, useSearchParams } from 'next/navigation';
 import {
     Heart,
     LogOut,
@@ -50,8 +51,8 @@ import { useInitials } from '@/hooks/use-initials';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { useTranslations } from '@/hooks/use-translations';
 import { toUrl } from '@/lib/utils';
-import { dashboard, login, register } from '@/routes';
-import { index as settingsIndex } from '@/routes/settings';
+import { paths } from '@/lib/paths';
+import { useSharedProps } from '@/lib/bootstrap';
 import type {
     BreadcrumbItem,
     NavItem,
@@ -71,30 +72,22 @@ const mainNavItems: NavItem[] = [];
 const rightNavItems: NavItem[] = [];
 
 export function AppHeader({ breadcrumbs = [] }: Props) {
-    const page = usePage<SharedData>();
+    const shared = useSharedProps();
+    const pathname = usePathname() || '/';
+    const searchParams = useSearchParams();
     const { t, categoryName } = useTranslations();
     const [sidebarLogoutOpen, setSidebarLogoutOpen] = useState(false);
     const {
         auth,
         categories = [],
         categoryTree = [],
-    } = page.props as SharedData & {
+    } = shared as SharedData & {
         categoryTree?: SharedCategoryTreeNode[];
         categories?: SharedCategory[];
     };
     const searchQuery =
-        (page.props as { searchQuery?: string }).searchQuery ?? '';
-    const currentLocation = (() => {
-        try {
-            return (
-                new URL(page.url, window?.location?.origin).searchParams.get(
-                    'location',
-                ) ?? null
-            );
-        } catch {
-            return null;
-        }
-    })();
+        (shared as { searchQuery?: string }).searchQuery ?? '';
+    const currentLocation = searchParams.get('location') ?? null;
     const getInitials = useInitials();
     const mobileNavCleanup = useMobileNavigation();
     const [headerLogoutOpen, setHeaderLogoutOpen] = useState(false);
@@ -162,13 +155,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
         return () => window.removeEventListener('resize', closeIfMdOrUp);
     }, []);
 
-    const currentPath = (() => {
-        try {
-            return new URL(page.url, window?.location?.origin).pathname ?? '';
-        } catch {
-            return '';
-        }
-    })();
+    const currentPath = pathname;
     const searchFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const form = e.currentTarget;
@@ -231,9 +218,9 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                             </Button>
                         </div>
                         <Link
-                            href={dashboard()}
+                            href={paths.home}
                             prefetch
-                            className="hidden shrink-0 items-center space-x-2 sm:flex"
+                            className="flex shrink-0 items-center space-x-2"
                         >
                             <AppLogo />
                         </Link>
@@ -510,7 +497,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                             <DropdownMenuItem asChild>
                                                 <Link
                                                     className="block w-full cursor-pointer"
-                                                    href={login()}
+                                                    href={paths.login}
                                                     prefetch
                                                 >
                                                     {t('nav.log_in')}
@@ -519,7 +506,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                             <DropdownMenuItem asChild>
                                                 <Link
                                                     className="block w-full cursor-pointer"
-                                                    href={register()}
+                                                    href={paths.register}
                                                     prefetch
                                                 >
                                                     {t('nav.register')}
@@ -638,7 +625,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     </SheetDescription>
                     <SheetHeader className="flex justify-start text-left">
                         <Link
-                            href={dashboard()}
+                            href={paths.home}
                             prefetch
                             onClick={() => setSheetOpen(false)}
                             className="flex items-center gap-3 rounded-md py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -818,7 +805,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                         </span>
                                     </div>
                                     <Link
-                                        href={settingsIndex()}
+                                        href={paths.settings.root}
                                         className="flex min-h-11 touch-manipulation items-center gap-2 rounded-md px-2 py-1.5 font-medium hover:bg-sidebar-accent"
                                     >
                                         <Settings className="h-4 w-4" />
@@ -842,13 +829,13 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                             ) : (
                                 <>
                                     <Link
-                                        href={login()}
+                                        href={paths.login}
                                         className="flex min-h-11 touch-manipulation items-center gap-2 rounded-md px-2 py-1.5 font-medium hover:bg-sidebar-accent"
                                     >
                                         {t('nav.log_in')}
                                     </Link>
                                     <Link
-                                        href={register()}
+                                        href={paths.register}
                                         className="flex min-h-11 touch-manipulation items-center gap-2 rounded-md px-2 py-1.5 font-medium hover:bg-sidebar-accent"
                                     >
                                         {t('nav.register')}

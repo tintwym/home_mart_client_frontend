@@ -7,7 +7,7 @@ export default function AppLogoIcon({
 }: ImgHTMLAttributes<HTMLImageElement>) {
     return (
         <img
-            src="/homemart-logo.png"
+            src="/favicon.svg"
             alt="Home Mart"
             {...props}
             className={cn('object-contain', className)}

@@ -13,7 +13,7 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
 NEXT_PUBLIC_FIREBASE_APP_ID=...
 ```
 
-Rename old `VITE_FIREBASE_*` → `NEXT_PUBLIC_FIREBASE_*`. Do **not** set `NEXT_PUBLIC_API_URL` unless you want direct CORS to Render.
+Use `NEXT_PUBLIC_FIREBASE_*` in Vercel. Do **not** set `NEXT_PUBLIC_API_URL` unless you want direct CORS to Render.
 
 ## Local development
 

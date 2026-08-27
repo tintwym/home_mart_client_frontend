@@ -1,9 +1,9 @@
-import { usePage } from '@/lib/inertia-compat';
+import { useSharedProps } from '@/lib/bootstrap';
 import type { SharedData } from '@/types';
 import AppLogoIcon from './app-logo-icon';
 
 export default function AppLogo() {
-    const { name } = usePage<SharedData>().props;
+    const { name } = useSharedProps();
 
     return (
         <>

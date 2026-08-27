@@ -1,4 +1,5 @@
-import { router, usePage } from '@/lib/inertia-compat';
+import { router } from '@/lib/app-client'
+import { useSharedProps } from '@/lib/bootstrap';
 import { Coins, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +19,7 @@ const CURRENCIES = [
 ];
 
 export function CurrencySwitcher() {
-    const { props } = usePage<SharedData>();
+    const props = useSharedProps();
     const { t } = useLocalization();
     const currentCurrency = props.currency || { code: 'USD', symbol: '$' };
 

@@ -28,9 +28,7 @@ export default function EditListingPage() {
     useEffect(() => {
         void (async () => {
             try {
-                const data = (await getListing(id)) as Record<string, unknown>;
-                const listing =
-                    (data.listing as Record<string, unknown>) || data;
+                const listing = await getListing(id);
                 setTitle(String(listing.title ?? ''));
                 setDescription(String(listing.description ?? ''));
                 setPrice(String(listing.price ?? ''));

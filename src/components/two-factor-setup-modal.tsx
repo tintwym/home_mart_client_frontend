@@ -1,8 +1,8 @@
-import { Form } from '@/lib/inertia-compat';
+import { Form } from '@/lib/app-client';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { Check, Copy, ScanLine } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import ConfirmedTwoFactorController from '@/actions/Laravel/Fortify/Http/Controllers/ConfirmedTwoFactorAuthenticationController';
+import { apiPaths } from '@/lib/paths';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -159,7 +159,7 @@ function TwoFactorVerificationStep({
 
     return (
         <Form
-            action={ConfirmedTwoFactorController.store.url()}
+            action={apiPaths.twoFactorConfirm}
             method="post"
             onSuccess={() => onClose()}
             resetOnError

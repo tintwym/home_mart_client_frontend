@@ -1,4 +1,4 @@
-import { usePage } from '@/lib/inertia-compat';
+import { useSharedProps } from '@/lib/bootstrap';
 import type { ReactNode } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import type { SharedData } from '@/types';
@@ -9,7 +9,7 @@ type Props = {
 };
 
 export function AppShell({ children, variant = 'header' }: Props) {
-    const isOpen = usePage<SharedData>().props.sidebarOpen;
+    const isOpen = useSharedProps().sidebarOpen;
 
     if (variant === 'header') {
         return (

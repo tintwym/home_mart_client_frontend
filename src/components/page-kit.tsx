@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { X } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 
 export function PageLoading({ label = 'Loading…' }: { label?: string }) {
@@ -64,15 +65,26 @@ export function AuthCard({
     description,
     children,
     footer,
+    showClose = true,
 }: {
     title: string;
     description?: string;
     children: React.ReactNode;
     footer?: React.ReactNode;
+    showClose?: boolean;
 }) {
     return (
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h1 className="text-xl font-semibold">{title}</h1>
+        <div className="relative rounded-xl border border-border bg-card p-6 shadow-sm">
+            {showClose ? (
+                <Link
+                    href="/"
+                    className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    aria-label="Close and go home"
+                >
+                    <X className="size-4" />
+                </Link>
+            ) : null}
+            <h1 className="pr-10 text-xl font-semibold">{title}</h1>
             {description ? (
                 <p className="mt-1 text-sm text-muted-foreground">{description}</p>
             ) : null}

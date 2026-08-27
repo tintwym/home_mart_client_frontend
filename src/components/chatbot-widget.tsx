@@ -1,6 +1,6 @@
 import { MessageCircle, Send, X } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { usePage } from '@/lib/inertia-compat';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/hooks/use-translations';
 import { cn } from '@/lib/utils';
@@ -84,8 +84,8 @@ const BOT_RULES: { phrases: string[]; replyKey: string }[] = [
 
 export function ChatbotWidget() {
     const { t } = useTranslations();
-    const { url } = usePage();
-    const isDashboard = url === '/' || url === '/dashboard';
+    const pathname = usePathname() || '/';
+    const isDashboard = pathname === '/' || pathname === '/dashboard';
     const [open, setOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>(() => [
         {

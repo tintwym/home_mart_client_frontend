@@ -1,4 +1,4 @@
-import { Link } from '@/lib/inertia-compat';
+import { Link } from '@/lib/app-client';
 import {
     SidebarGroup,
     SidebarGroupLabel,

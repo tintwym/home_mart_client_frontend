@@ -1,4 +1,5 @@
-import { router, usePage } from '@/lib/inertia-compat';
+import { router } from '@/lib/app-client'
+import { useSharedProps } from '@/lib/bootstrap';
 import { Globe, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,7 +24,7 @@ const REGIONS: {
 ];
 
 export function RegionSwitcher() {
-    const { props } = usePage<SharedData>();
+    const props = useSharedProps();
     const { t } = useLocalization();
     const currentRegion = props.region || 'US';
 

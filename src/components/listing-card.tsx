@@ -1,4 +1,5 @@
-import { Link, router, usePage } from '@/lib/inertia-compat';
+import { Link, router } from '@/lib/app-client'
+import { useSharedProps } from '@/lib/bootstrap';
 import {
     Heart,
     MoreVertical,
@@ -92,7 +93,7 @@ type ListingCardProps = {
 };
 
 export function ListingCard({ listing }: ListingCardProps) {
-    const { auth } = usePage<SharedData>().props;
+    const { auth } = useSharedProps();
     const { t } = useTranslations();
     const canEdit = auth?.user && listing.user_id === auth.user.id;
     const isTrending =

@@ -1,4 +1,5 @@
-import { Link, usePage } from '@/lib/inertia-compat';
+import { Link } from '@/lib/app-client';
+import { useSharedProps } from '@/lib/bootstrap';
 import {
     BookOpen,
     Folder,
@@ -18,14 +19,14 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { paths } from '@/lib/paths';
 import type { NavItem } from '@/types';
 import AppLogo from './app-logo';
 
 const allNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: paths.home,
         icon: LayoutGrid,
     },
     {
@@ -54,7 +55,7 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-    const { auth } = usePage<{ auth?: { user?: unknown } }>().props;
+    const { auth } = useSharedProps();
     const mainNavItems = auth?.user
         ? allNavItems
         : allNavItems.filter(
@@ -67,7 +68,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href={paths.home} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

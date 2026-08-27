@@ -5,7 +5,7 @@ import {
     useStripe,
 } from '@stripe/react-stripe-js';
 import { loadStripe, type Stripe } from '@stripe/stripe-js';
-import { Link, router } from '@/lib/inertia-compat';
+import { Link, router } from '@/lib/app-client';
 import { Camera, Loader2, Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';

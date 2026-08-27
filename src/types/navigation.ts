@@ -1,4 +1,4 @@
-import type { InertiaLinkProps } from '@/lib/inertia-compat';
+import type { AppHref } from '@/types/href';
 import type { LucideIcon } from 'lucide-react';
 
 export type BreadcrumbItem = {
@@ -8,7 +8,7 @@ export type BreadcrumbItem = {
 
 export type NavItem = {
     title: string;
-    href: NonNullable<InertiaLinkProps['href']>;
+    href: AppHref;
     icon?: LucideIcon | null;
     isActive?: boolean;
 };

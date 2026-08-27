@@ -1,4 +1,5 @@
-import { Link, usePage } from '@/lib/inertia-compat';
+import { Link } from '@/lib/app-client'
+import { useSharedProps } from '@/lib/bootstrap';
 import { ChevronsUpDown } from 'lucide-react';
 import { useState } from 'react';
 import { LogoutConfirmDialog } from '@/components/logout-confirm-dialog';
@@ -17,11 +18,11 @@ import { UserInfo } from '@/components/user-info';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
-import { login, register } from '@/routes';
+import { paths } from '@/lib/paths';
 import type { SharedData } from '@/types';
 
 export function NavUser() {
-    const { auth } = usePage<SharedData>().props;
+    const { auth } = useSharedProps();
     const { state } = useSidebar();
     const isMobile = useIsMobile();
     const mobileNavCleanup = useMobileNavigation();
@@ -32,12 +33,12 @@ export function NavUser() {
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" asChild>
-                        <Link href={login()}>Log in</Link>
+                        <Link href={paths.login}>Log in</Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" asChild>
-                        <Link href={register()}>Register</Link>
+                        <Link href={paths.register}>Register</Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>

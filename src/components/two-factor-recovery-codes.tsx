@@ -1,7 +1,7 @@
-import { Form } from '@/lib/inertia-compat';
+import { Form } from '@/lib/app-client';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import RecoveryCodeController from '@/actions/Laravel/Fortify/Http/Controllers/RecoveryCodeController';
+import { apiPaths } from '@/lib/paths';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -84,7 +84,7 @@ export default function TwoFactorRecoveryCodes({
 
                     {canRegenerateCodes && (
                         <Form
-                            action={RecoveryCodeController.store.url()}
+                            action={apiPaths.twoFactorRecoveryCodes}
                             method="post"
                             options={{ preserveScroll: true }}
                             onSuccess={fetchRecoveryCodes}

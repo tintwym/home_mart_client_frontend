@@ -248,8 +248,65 @@ export async function getListings(
     return apiFetch(`/api/listings${qs ? `?${qs}` : ''}`);
 }
 
-export async function getListing(id: string): Promise<unknown> {
-    return apiFetch(`/api/listings/${id}`);
+export type ListingReview = {
+    id: string;
+    rating?: number;
+    comment?: string | null;
+    created_at?: string;
+    user?: { id: string; name: string } | null;
+};
+
+export type ListingDetail = {
+    id: string;
+    user_id?: string;
+    title: string;
+    description?: string | null;
+    condition?: string;
+    price?: number;
+    meetup_location?: string | null;
+    image_url?: string | null;
+    image_path?: string | null;
+    is_sold?: boolean;
+    is_trending?: boolean;
+    views_count?: number;
+    category?: { id: string; name: string; slug: string } | null;
+    seller?: { id: string; name: string; region?: string | null } | null;
+    user?: { id: string; name: string; region?: string | null } | null;
+    average_rating?: number;
+    review_count?: number;
+    reviews?: ListingReview[];
+    related_listings?: Record<string, unknown>[];
+};
+
+export function resolveListingImage(listing: {
+    image_url?: string | null;
+    image_path?: string | null;
+}): string | null {
+    const raw = listing.image_url ?? listing.image_path ?? null;
+    if (!raw) return null;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (raw.startsWith('/storage/') || raw.startsWith('/api/')) return raw;
+    if (raw.startsWith('/')) return raw;
+    return `/storage/${raw.replace(/^\/+/, '')}`;
+}
+
+function unwrapListingPayload(payload: unknown): ListingDetail {
+    if (!payload || typeof payload !== 'object') {
+        throw new Error('Invalid listing response');
+    }
+    const record = payload as Record<string, unknown>;
+    if (record.data && typeof record.data === 'object') {
+        return record.data as ListingDetail;
+    }
+    if (record.listing && typeof record.listing === 'object') {
+        return record.listing as ListingDetail;
+    }
+    return record as ListingDetail;
+}
+
+export async function getListing(id: string): Promise<ListingDetail> {
+    const payload = await apiFetch<unknown>(`/api/listings/${id}`);
+    return unwrapListingPayload(payload);
 }
 
 export async function getCategories(): Promise<unknown> {

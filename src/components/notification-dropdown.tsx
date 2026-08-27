@@ -1,5 +1,5 @@
-import { Link, router } from '@/lib/inertia-compat';
-import { usePage } from '@/lib/inertia-compat';
+import { Link, router } from '@/lib/app-client';
+import { useSharedProps } from '@/lib/bootstrap';
 import { Bell, Heart, MessageCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ type Notification = {
 };
 
 export function NotificationDropdownContent() {
-    const { auth } = usePage<SharedData>().props;
+    const { auth } = useSharedProps();
     const [notifications, setNotifications] = useState<Notification[]>([]);
 
     useEffect(() => {
