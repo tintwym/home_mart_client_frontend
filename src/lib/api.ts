@@ -1,0 +1,316 @@
+const TOKEN_KEY = 'hm_token';
+
+/** Resolved per-request so browser can use same-origin /api (Vercel rewrites). */
+export function getApiBase(): string {
+    const configured = process.env.NEXT_PUBLIC_API_URL?.trim();
+    if (configured) {
+        return configured.replace(/\/$/, '');
+    }
+    if (typeof window !== 'undefined') {
+        return '';
+    }
+    return (process.env.BACKEND_URL || 'http://localhost:5199').replace(/\/$/, '');
+}
+
+/** @deprecated use getApiBase() — kept for callers that read a string at import time */
+export const API_URL =
+    (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL?.trim()) ||
+    (typeof window !== 'undefined' ? '' : process.env.BACKEND_URL || 'http://localhost:5199');
+
+export function getToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        return localStorage.getItem(TOKEN_KEY);
+    } catch {
+        return null;
+    }
+}
+
+export function setToken(token: string): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearToken(): void {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(TOKEN_KEY);
+}
+
+export class ApiError extends Error {
+    status: number;
+    errors: Record<string, unknown>;
+    body: unknown;
+
+    constructor(
+        message: string,
+        status: number,
+        body?: unknown,
+        errors: Record<string, unknown> = {},
+    ) {
+        super(message);
+        this.name = 'ApiError';
+        this.status = status;
+        this.body = body;
+        this.errors = errors;
+    }
+}
+
+type ApiFetchOptions = Omit<RequestInit, 'body'> & {
+    body?: unknown;
+    auth?: boolean;
+    rawBody?: BodyInit | null;
+};
+
+function resolveUrl(path: string): string {
+    if (/^https?:\/\//i.test(path)) return path;
+    const base = getApiBase();
+    const p = path.startsWith('/') ? path : `/${path}`;
+    return base ? `${base}${p}` : p;
+}
+
+export async function apiFetch<T = unknown>(
+    path: string,
+    options: ApiFetchOptions = {},
+): Promise<T> {
+    const { body, auth = true, rawBody, headers: initHeaders, ...rest } = options;
+    const headers = new Headers(initHeaders);
+
+    if (auth) {
+        const token = getToken();
+        if (token) headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    let finalBody: BodyInit | undefined | null = rawBody;
+    if (rawBody === undefined && body !== undefined && body !== null) {
+        if (body instanceof FormData) {
+            finalBody = body;
+        } else {
+            if (!headers.has('Content-Type')) {
+                headers.set('Content-Type', 'application/json');
+            }
+            finalBody = JSON.stringify(body);
+        }
+    }
+
+    if (!headers.has('Accept')) {
+        headers.set('Accept', 'application/json');
+    }
+
+    const res = await fetch(resolveUrl(path), {
+        ...rest,
+        headers,
+        body: finalBody === null ? undefined : finalBody,
+    });
+
+    const text = await res.text();
+    let data: unknown = null;
+    if (text) {
+        try {
+            data = JSON.parse(text);
+        } catch {
+            data = text;
+        }
+    }
+
+    if (!res.ok) {
+        const obj = (data && typeof data === 'object' ? data : {}) as Record<
+            string,
+            unknown
+        >;
+        const message =
+            (typeof obj.message === 'string' && obj.message) ||
+            `Request failed (${res.status})`;
+        const errors =
+            obj.errors && typeof obj.errors === 'object'
+                ? (obj.errors as Record<string, unknown>)
+                : {};
+        throw new ApiError(message, res.status, data, errors);
+    }
+
+    return data as T;
+}
+
+export type AuthUser = {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string | null;
+    address?: string | null;
+    region?: string | null;
+    avatar?: string | null;
+    email_verified_at?: string | null;
+    two_factor_enabled?: boolean;
+    [key: string]: unknown;
+};
+
+export type TokenResponse = {
+    user: AuthUser;
+    token: string;
+};
+
+export type BootstrapAuth = {
+    user: AuthUser | null;
+    cart_listing_ids?: string[];
+    favorite_listing_ids?: string[];
+    unread_messages?: number;
+};
+
+export type BootstrapData = {
+    auth: BootstrapAuth;
+    region?: string;
+    currency?: string | Record<string, unknown>;
+    locale?: string;
+    categories?: unknown[];
+    category_tree?: unknown[];
+    locations?: unknown[];
+    currencies?: Record<string, unknown>;
+    exchange_rates?: Record<string, number>;
+    regions?: string[];
+    region_labels?: Record<string, string>;
+    translations?: Record<string, string>;
+    [key: string]: unknown;
+};
+
+export async function getBootstrap(params?: {
+    region?: string;
+    currency?: string;
+    locale?: string;
+}): Promise<BootstrapData> {
+    const q = new URLSearchParams();
+    if (params?.region) q.set('region', params.region);
+    if (params?.currency) q.set('currency', params.currency);
+    if (params?.locale) q.set('locale', params.locale);
+    const qs = q.toString();
+    return apiFetch<BootstrapData>(`/api/bootstrap${qs ? `?${qs}` : ''}`, {
+        auth: true,
+    });
+}
+
+export async function getUser(): Promise<AuthUser> {
+    return apiFetch<AuthUser>('/api/user');
+}
+
+export async function login(
+    email: string,
+    password: string,
+): Promise<TokenResponse> {
+    return apiFetch<TokenResponse>('/api/login', {
+        method: 'POST',
+        auth: false,
+        body: { email, password },
+    });
+}
+
+export async function register(payload: {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation?: string;
+    seller_type?: string;
+    region?: string;
+}): Promise<TokenResponse> {
+    return apiFetch<TokenResponse>('/api/register', {
+        method: 'POST',
+        auth: false,
+        body: payload,
+    });
+}
+
+export async function firebaseLogin(
+    idToken: string,
+    region?: string,
+): Promise<TokenResponse> {
+    return apiFetch<TokenResponse>('/api/auth/firebase', {
+        method: 'POST',
+        auth: false,
+        body: { id_token: idToken, ...(region ? { region } : {}) },
+    });
+}
+
+export async function logout(): Promise<void> {
+    try {
+        await apiFetch('/api/logout', { method: 'POST' });
+    } finally {
+        clearToken();
+    }
+}
+
+export async function getListings(
+    params?: Record<string, string | number | undefined>,
+): Promise<{ data?: unknown[]; listings?: unknown[]; [key: string]: unknown }> {
+    const q = new URLSearchParams();
+    if (params) {
+        for (const [k, v] of Object.entries(params)) {
+            if (v !== undefined && v !== null && v !== '') q.set(k, String(v));
+        }
+    }
+    const qs = q.toString();
+    return apiFetch(`/api/listings${qs ? `?${qs}` : ''}`);
+}
+
+export async function getListing(id: string): Promise<unknown> {
+    return apiFetch(`/api/listings/${id}`);
+}
+
+export async function getCategories(): Promise<unknown> {
+    return apiFetch('/api/categories');
+}
+
+export async function getCart(): Promise<{ items: unknown[] }> {
+    return apiFetch('/api/cart');
+}
+
+export async function getFavorites(): Promise<unknown> {
+    return apiFetch('/api/favorites');
+}
+
+export async function getConversations(): Promise<unknown> {
+    return apiFetch('/api/conversations');
+}
+
+export async function getConversationMessages(id: string): Promise<unknown> {
+    return apiFetch(`/api/conversations/${id}/messages`);
+}
+
+export async function getOrders(): Promise<unknown> {
+    return apiFetch('/api/orders');
+}
+
+export async function getUserProfile(id: string): Promise<unknown> {
+    return apiFetch(`/api/users/${id}`);
+}
+
+export async function getUpgrades(): Promise<unknown> {
+    return apiFetch('/api/upgrades');
+}
+
+export async function forgotPassword(email: string): Promise<unknown> {
+    return apiFetch('/api/forgot-password', {
+        method: 'POST',
+        auth: false,
+        body: { email },
+    });
+}
+
+export async function resetPassword(payload: {
+    token: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+}): Promise<unknown> {
+    return apiFetch('/api/reset-password', {
+        method: 'POST',
+        auth: false,
+        body: payload,
+    });
+}
+
+export async function confirmTwoFactor(payload: {
+    code?: string;
+    recovery_code?: string;
+}): Promise<TokenResponse> {
+    return apiFetch<TokenResponse>('/api/two-factor-challenge', {
+        method: 'POST',
+        body: payload,
+    });
+}
