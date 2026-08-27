@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import AppLogoIcon from '@/components/app-logo-icon';
 import { useAuth } from '@/lib/auth';
 import { useSharedProps } from '@/lib/bootstrap';
 import { Button } from '@/components/ui/button';
@@ -16,8 +17,10 @@ import {
 
 export default function ShopLayout({
     children,
+    modal,
 }: {
     children: React.ReactNode;
+    modal: React.ReactNode;
 }) {
     const { user, logout, loading } = useAuth();
     const shared = useSharedProps();
@@ -32,9 +35,12 @@ export default function ShopLayout({
                 <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:h-16 sm:px-6">
                     <Link
                         href="/"
-                        className="text-lg font-semibold tracking-tight text-foreground"
+                        className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground"
                     >
-                        {appName}
+                        <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-primary/10">
+                            <AppLogoIcon className="size-full" />
+                        </span>
+                        <span className="truncate">{appName}</span>
                     </Link>
                     <nav className="ml-auto flex items-center gap-1 sm:gap-2">
                         <Button variant="ghost" size="icon" asChild>
@@ -98,6 +104,7 @@ export default function ShopLayout({
             <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
                 {children}
             </main>
+            {modal}
             <footer className="border-t border-border/60 py-6 text-center text-sm text-muted-foreground">
                 <Link href="/download" className="hover:text-foreground">
                     Get the app

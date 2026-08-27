@@ -3,24 +3,26 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { KeyRound } from 'lucide-react';
 import { ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { AuthCard } from '@/components/page-kit';
+import { AuthDivider, AuthPanel } from '@/components/auth/auth-panel';
+import { SocialAuthButtons } from '@/components/auth/social-auth-buttons';
 import { ValidatedField } from '@/components/validated-field';
 import { Button } from '@/components/ui/button';
 import {
     browserSupportsWebAuthn,
     startAuthentication,
 } from '@/lib/passkeys-client';
-import { isFirebaseConfigured, signInWithSocial } from '@/lib/firebase';
 import { useFieldValidation } from '@/hooks/use-field-validation';
+import { isFirebaseConfigured } from '@/lib/firebase';
 import {
     validateEmail,
     validatePassword,
 } from '@/lib/form-validation';
 
 export default function LoginPage() {
-    const { login, loginWithFirebase, setSession } = useAuth();
+    const { login, setSession } = useAuth();
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
@@ -40,19 +42,29 @@ export default function LoginPage() {
         },
     );
 
+    const formDisabled = busy;
+    const socialAvailable = isFirebaseConfigured();
+
     return (
-        <AuthCard
-            title="Log in"
-            description="Welcome back to Home Mart"
+        <AuthPanel
+            title="Welcome back"
+            description="Sign in to buy, sell, and message sellers"
             footer={
                 <>
                     Don&apos;t have an account?{' '}
-                    <Link href="/register" className="font-medium underline">
-                        Register
+                    <Link
+                        href="/register"
+                        className="font-semibold text-primary underline-offset-4 hover:underline"
+                    >
+                        Create one
                     </Link>
                 </>
             }
         >
+            <SocialAuthButtons disabled={formDisabled} onError={setError} />
+
+            {socialAvailable ? <AuthDivider /> : null}
+
             <form
                 className="space-y-4"
                 noValidate
@@ -91,73 +103,55 @@ export default function LoginPage() {
                     label="Email"
                     type="email"
                     autoComplete="username"
+                    placeholder="you@example.com"
                     value={values.email}
                     onChange={(value) => setValue('email', value)}
                     onBlur={() => blurField('email')}
                     error={errors.email}
-                    disabled={busy}
+                    disabled={formDisabled}
                 />
                 <ValidatedField
                     id="password"
                     label="Password"
                     type="password"
                     autoComplete="current-password"
+                    placeholder="Your password"
                     value={values.password}
                     onChange={(value) => setValue('password', value)}
                     onBlur={() => blurField('password')}
                     error={errors.password}
-                    disabled={busy}
+                    disabled={formDisabled}
                 />
+
+                <div className="flex justify-end">
+                    <Link
+                        href="/forgot-password"
+                        className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                        Forgot password?
+                    </Link>
+                </div>
+
                 {error ? (
-                    <p className="text-sm text-destructive">{error}</p>
+                    <p
+                        className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                        role="alert"
+                    >
+                        {error}
+                    </p>
                 ) : null}
-                <Button type="submit" className="w-full" disabled={busy}>
-                    {busy ? 'Signing in…' : 'Log in'}
+
+                <Button type="submit" className="h-11 w-full" disabled={formDisabled}>
+                    {busy ? 'Signing in…' : 'Sign in with email'}
                 </Button>
             </form>
-
-            <div className="text-center text-sm">
-                <Link href="/forgot-password" className="underline">
-                    Forgot password?
-                </Link>
-            </div>
-
-            {isFirebaseConfigured() ? (
-                <div className="grid gap-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        disabled={busy}
-                        onClick={async () => {
-                            setBusy(true);
-                            setError(null);
-                            try {
-                                const { idToken } =
-                                    await signInWithSocial('google');
-                                await loginWithFirebase(idToken);
-                                router.push('/');
-                            } catch (err) {
-                                setError(
-                                    err instanceof Error
-                                        ? err.message
-                                        : 'Google sign-in failed',
-                                );
-                            } finally {
-                                setBusy(false);
-                            }
-                        }}
-                    >
-                        Continue with Google
-                    </Button>
-                </div>
-            ) : null}
 
             {browserSupportsWebAuthn() ? (
                 <Button
                     type="button"
-                    variant="secondary"
-                    disabled={busy}
-                    className="w-full"
+                    variant="ghost"
+                    disabled={formDisabled}
+                    className="h-11 w-full gap-2 text-muted-foreground"
                     onClick={async () => {
                         setBusy(true);
                         setError(null);
@@ -196,16 +190,17 @@ export default function LoginPage() {
                             setError(
                                 err instanceof Error
                                     ? err.message
-                                    : 'Passkey failed',
+                                    : 'Passkey sign-in failed',
                             );
                         } finally {
                             setBusy(false);
                         }
                     }}
                 >
+                    <KeyRound className="size-4" />
                     Sign in with passkey
                 </Button>
             ) : null}
-        </AuthCard>
+        </AuthPanel>
     );
 }

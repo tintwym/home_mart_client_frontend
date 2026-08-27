@@ -2,7 +2,7 @@
 
 import { Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from '@/hooks/use-translations';
 import { cn } from '@/lib/utils';
 
@@ -21,6 +21,10 @@ export function SiteSearchBar({
     const { t } = useTranslations();
     const inputRef = useRef<HTMLInputElement>(null);
     const [query, setQuery] = useState(defaultQuery);
+
+    useEffect(() => {
+        setQuery(defaultQuery);
+    }, [defaultQuery]);
 
     return (
         <form

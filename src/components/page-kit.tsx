@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { X } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
+import { AuthPanel } from '@/components/auth/auth-panel';
 
 export function PageLoading({ label = 'Loading…' }: { label?: string }) {
     return (
@@ -74,27 +74,14 @@ export function AuthCard({
     showClose?: boolean;
 }) {
     return (
-        <div className="relative rounded-xl border border-border bg-card p-6 shadow-sm">
-            {showClose ? (
-                <Link
-                    href="/"
-                    className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    aria-label="Close and go home"
-                >
-                    <X className="size-4" />
-                </Link>
-            ) : null}
-            <h1 className="pr-10 text-xl font-semibold">{title}</h1>
-            {description ? (
-                <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-            ) : null}
-            <div className="mt-6 space-y-4">{children}</div>
-            {footer ? (
-                <div className="mt-6 text-center text-sm text-muted-foreground">
-                    {footer}
-                </div>
-            ) : null}
-        </div>
+        <AuthPanel
+            title={title}
+            description={description}
+            footer={footer}
+            showClose={showClose}
+        >
+            {children}
+        </AuthPanel>
     );
 }
 
