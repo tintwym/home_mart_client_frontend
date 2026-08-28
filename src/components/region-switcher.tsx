@@ -1,4 +1,3 @@
-import { router } from '@/lib/app-client'
 import { useSharedProps } from '@/lib/bootstrap';
 import { Globe, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,12 +24,8 @@ const REGIONS: {
 
 export function RegionSwitcher() {
     const props = useSharedProps();
-    const { t } = useLocalization();
+    const { t, setRegion } = useLocalization();
     const currentRegion = props.region || 'US';
-
-    function setRegion(code: string) {
-        router.post('/region', { region: code }, { preserveScroll: true });
-    }
 
     const currentRegionInfo =
         REGIONS.find((r) => r.code === currentRegion) || REGIONS[3];

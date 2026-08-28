@@ -21,6 +21,7 @@ import {
     validatePassword,
 } from '@/lib/form-validation';
 import { useClientMounted } from '@/hooks/use-client-mounted';
+import { saveTwoFactorCredentials } from '@/lib/two-factor-session';
 
 export default function LoginPage() {
     const { login, setSession } = useAuth();
@@ -94,6 +95,10 @@ export default function LoginPage() {
                             (err.errors.two_factor_required ||
                                 err.errors.two_factor)
                         ) {
+                            saveTwoFactorCredentials(
+                                values.email.trim(),
+                                values.password,
+                            );
                             router.push('/two-factor-challenge');
                             return;
                         }

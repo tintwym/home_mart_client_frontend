@@ -1,6 +1,6 @@
 import { Link, router } from '@/lib/app-client';
 import { resolveListingImage } from '@/lib/api';
-import { useSharedProps } from '@/lib/bootstrap';
+import { useBootstrap, useSharedProps } from '@/lib/bootstrap';
 import {
     Heart,
     MoreVertical,
@@ -25,7 +25,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useTranslations } from '@/hooks/use-translations';
 import { CurrencyFormatter } from '@/components/currency-formatter';
-import type { SharedData } from '@/types';
 import { cn } from '@/lib/utils';
 
 const CONDITION_KEYS: Record<string, string> = {
@@ -95,27 +94,24 @@ type ListingCardProps = {
 
 export function ListingCard({ listing }: ListingCardProps) {
     const { auth } = useSharedProps();
+    const { refresh } = useBootstrap();
     const { t } = useTranslations();
     const canEdit = auth?.user && listing.user_id === auth.user.id;
     const isTrending =
         listing.trending_until && new Date(listing.trending_until) > new Date();
     const [imageError, setImageError] = useState(false);
+    const [quickViewImageError, setQuickViewImageError] = useState(false);
     const imageSrc = resolveListingImage(listing);
     const showImage = imageSrc && !imageError;
 
-    // Advanced Business rules & feedback feedback properties
     const isOutOfStock =
         listing.is_sold ||
         (listing.inventory !== undefined && listing.inventory === 0);
 
-    const rating =
-        listing.rating !== undefined
-            ? listing.rating
-            : parseFloat((4.2 + (listing.price % 8) / 10).toFixed(1)); // 4.2 to 4.9
-    const reviewCount =
-        listing.reviews_count !== undefined
-            ? listing.reviews_count
-            : (listing.price % 36) + 6; // 6 to 41
+    const rating = listing.rating;
+    const reviewCount = listing.reviews_count;
+    const showRatings =
+        rating !== undefined && reviewCount !== undefined && reviewCount > 0;
 
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
     const [now] = useState(() => Date.now());
@@ -123,7 +119,13 @@ export function ListingCard({ listing }: ListingCardProps) {
         !isOutOfStock &&
         !!listing.created_at &&
         now - new Date(listing.created_at).getTime() < SEVEN_DAYS_MS;
-    const isBestseller = !isOutOfStock && rating >= 4.7 && reviewCount >= 20;
+    const isBestseller =
+        !isOutOfStock &&
+        showRatings &&
+        rating !== undefined &&
+        rating >= 4.7 &&
+        reviewCount !== undefined &&
+        reviewCount >= 20;
 
     const { toast } = useToast();
     const isFavorite =
@@ -160,6 +162,7 @@ export function ListingCard({ listing }: ListingCardProps) {
     useEffect(() => {
         setActiveImage(primaryImg);
         setImageError(false);
+        setQuickViewImageError(false);
     }, [primaryImg]);
 
     const handleFavoriteToggle = (e: React.MouseEvent) => {
@@ -176,6 +179,7 @@ export function ListingCard({ listing }: ListingCardProps) {
             {
                 preserveScroll: true,
                 onSuccess: () => {
+                    void refresh();
                     toast({
                         title: nextIsFavorite
                             ? 'Added to Favorites'
@@ -282,6 +286,11 @@ export function ListingCard({ listing }: ListingCardProps) {
                                                 ) {
                                                     router.delete(
                                                         `/listings/${listing.id}`,
+                                                        {
+                                                            onSuccess: () => {
+                                                                void refresh();
+                                                            },
+                                                        },
                                                     );
                                                 }
                                             }}
@@ -372,34 +381,35 @@ export function ListingCard({ listing }: ListingCardProps) {
                         </h3>
                     </Link>
 
-                    {/* Highly Polished Star Rating display beneath title */}
-                    <div className="flex items-center gap-1.5 pt-0.5">
-                        <div className="flex items-center text-amber-400">
-                            {Array.from({ length: 5 }).map((_, i) => {
-                                const isFilled = i < Math.floor(rating);
-                                const isHalf = !isFilled && i < rating;
-                                return (
-                                    <Star
-                                        key={i}
-                                        className={cn(
-                                            'size-3',
-                                            isFilled
-                                                ? 'fill-amber-400 text-amber-400'
-                                                : isHalf
-                                                  ? 'fill-amber-400/50 text-amber-400'
-                                                  : 'text-zinc-200 dark:text-zinc-800',
-                                        )}
-                                    />
-                                );
-                            })}
-                        </div>
-                        <span className="mt-0.5 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
-                            {rating.toFixed(1)}{' '}
-                            <span className="font-normal text-zinc-400">
-                                ({reviewCount})
+                    {showRatings && rating !== undefined ? (
+                        <div className="flex items-center gap-1.5 pt-0.5">
+                            <div className="flex items-center text-amber-400">
+                                {Array.from({ length: 5 }).map((_, i) => {
+                                    const isFilled = i < Math.floor(rating);
+                                    const isHalf = !isFilled && i < rating;
+                                    return (
+                                        <Star
+                                            key={i}
+                                            className={cn(
+                                                'size-3',
+                                                isFilled
+                                                    ? 'fill-amber-400 text-amber-400'
+                                                    : isHalf
+                                                      ? 'fill-amber-400/50 text-amber-400'
+                                                      : 'text-zinc-200 dark:text-zinc-800',
+                                            )}
+                                        />
+                                    );
+                                })}
+                            </div>
+                            <span className="mt-0.5 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
+                                {rating.toFixed(1)}{' '}
+                                <span className="font-normal text-zinc-400">
+                                    ({reviewCount})
+                                </span>
                             </span>
-                        </span>
-                    </div>
+                        </div>
+                    ) : null}
 
                     <div className="flex items-baseline justify-between gap-2 pt-0.5">
                         <Link
@@ -487,6 +497,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                                                     {
                                                         preserveScroll: true,
                                                         onSuccess: () => {
+                                                            void refresh();
                                                             toast({
                                                                 title: 'Added to Cart',
                                                                 description: `"${listing.title}" has been added to your shopping cart.`,
@@ -566,7 +577,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                                                 alt={listing.title}
                                                 className="absolute inset-0 size-full rounded-lg object-contain p-2"
                                                 onError={() =>
-                                                    setImageError(true)
+                                                    setQuickViewImageError(true)
                                                 }
                                             />
                                         </div>

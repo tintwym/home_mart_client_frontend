@@ -1,4 +1,7 @@
-import { router } from '@/lib/app-client';
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -9,7 +12,6 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { useTranslations } from '@/hooks/use-translations';
-import { paths } from '@/lib/paths';
 
 type Props = {
     open: boolean;
@@ -19,10 +21,14 @@ type Props = {
 
 export function LogoutConfirmDialog({ open, onOpenChange, onLogout }: Props) {
     const { t } = useTranslations();
-    const handleLogout = () => {
+    const { logout } = useAuth();
+    const router = useRouter();
+
+    const handleLogout = async () => {
         onLogout?.();
         onOpenChange(false);
-        router.post(paths.logout);
+        await logout();
+        router.replace('/');
     };
 
     return (

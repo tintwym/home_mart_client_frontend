@@ -9,7 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-type Category = { id: string; name: string; slug?: string };
+type Category = {
+    id: string;
+    name: string;
+    slug?: string;
+    subcategories?: { id: string; name: string; slug?: string }[];
+};
 
 export default function CreateListingPage() {
     const { user, loading: authLoading } = useAuth();
@@ -50,6 +55,14 @@ export default function CreateListingPage() {
         setSaving(true);
         setError(null);
         try {
+            const category = categories.find((c) => c.id === categoryId);
+            const subcategoryId =
+                category?.subcategories?.[0]?.id ?? categoryId;
+            if (!subcategoryId) {
+                setError('Choose a category.');
+                setSaving(false);
+                return;
+            }
             const created = await apiFetch<{ id?: string; listing?: { id: string } }>(
                 '/api/listings',
                 {
@@ -59,7 +72,7 @@ export default function CreateListingPage() {
                         description,
                         price: Number(price),
                         condition,
-                        category_id: categoryId || undefined,
+                        subcategoryId: subcategoryId,
                     },
                 },
             );

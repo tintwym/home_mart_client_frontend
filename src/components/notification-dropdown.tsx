@@ -25,6 +25,7 @@ export function NotificationDropdownContent() {
     }, [auth?.user]);
 
     const markAsRead = (id: string) => {
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
         router.post(
             `/notifications/${id}/read`,
             {},
@@ -36,6 +37,7 @@ export function NotificationDropdownContent() {
     };
 
     const markAllAsRead = () => {
+        setNotifications([]);
         router.post(
             '/notifications/read-all',
             {},

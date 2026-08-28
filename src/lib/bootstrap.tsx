@@ -13,6 +13,7 @@ import {
     getBootstrap,
     type BootstrapData,
 } from '@/lib/api';
+import { readShopPrefs } from '@/lib/shop-prefs';
 import type { SharedData } from '@/types';
 import { useAuthOptional } from '@/lib/auth';
 
@@ -104,7 +105,12 @@ export function BootstrapProvider({ children }: { children: ReactNode }) {
             setLoading(true);
             setError(null);
             try {
-                const boot = await getBootstrap(params);
+                const prefs = readShopPrefs();
+                const boot = await getBootstrap({
+                    region: params?.region ?? prefs.region,
+                    currency: params?.currency ?? prefs.currency,
+                    locale: params?.locale ?? prefs.locale,
+                });
                 setData(boot);
                 if (boot.auth?.user && auth?.setSession && auth.token) {
                     // keep auth user in sync when bootstrap has fresher user

@@ -395,11 +395,14 @@ export async function resetPassword(payload: {
 }
 
 export async function confirmTwoFactor(payload: {
+    email: string;
+    password: string;
     code?: string;
-    recovery_code?: string;
+    recoveryCode?: string;
 }): Promise<TokenResponse> {
     return apiFetch<TokenResponse>('/api/two-factor-challenge', {
         method: 'POST',
+        auth: false,
         body: payload,
     });
 }

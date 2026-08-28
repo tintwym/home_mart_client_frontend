@@ -146,6 +146,11 @@ async function visit(href: AppHref, options: VisitOptions = {}): Promise<void> {
                 setToken((data as { token: string }).token);
             }
 
+            if (pathForFetch.includes('/logout')) {
+                const { clearToken } = await import('@/lib/api');
+                clearToken();
+            }
+
             options.onSuccess?.({
                 props: (data as Record<string, unknown>) ?? {},
                 url: rawUrl,
@@ -164,11 +169,11 @@ async function visit(href: AppHref, options: VisitOptions = {}): Promise<void> {
             }
         } catch (e) {
             if (e instanceof ApiError) {
-                options.onError?.(
-                    e.errors?.length
+                const fieldErrors =
+                    e.errors && Object.keys(e.errors).length > 0
                         ? e.errors
-                        : { message: e.message, ...e.errors },
-                );
+                        : { message: e.message };
+                options.onError?.(fieldErrors);
             } else {
                 options.onError?.({
                     message:

@@ -1,5 +1,4 @@
-import { router } from '@/lib/app-client'
-import { useSharedProps } from '@/lib/bootstrap';
+import { useBootstrap, useSharedProps } from '@/lib/bootstrap';
 import { Coins, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { SharedData } from '@/types';
 import { useLocalization } from './localization-provider';
+import { saveShopCurrency } from '@/lib/shop-prefs';
 
 const CURRENCIES = [
     { code: 'USD', labelKey: 'currency.usd', symbol: '$' },
@@ -20,11 +20,13 @@ const CURRENCIES = [
 
 export function CurrencySwitcher() {
     const props = useSharedProps();
+    const { refresh } = useBootstrap();
     const { t } = useLocalization();
     const currentCurrency = props.currency || { code: 'USD', symbol: '$' };
 
     const handleSelectCurrency = (code: string) => {
-        router.post('/currency', { currency: code }, { preserveScroll: true });
+        saveShopCurrency(code);
+        void refresh({ currency: code });
     };
 
     return (

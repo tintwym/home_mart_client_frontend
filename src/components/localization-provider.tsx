@@ -1,9 +1,15 @@
+'use client';
+
 import React, { createContext, useContext, useEffect, useMemo } from 'react';
-import { router } from '@/lib/app-client'
-import { useSharedProps } from '@/lib/bootstrap';
+import { useBootstrap } from '@/lib/bootstrap';
 import type { SharedCurrency, SharedData } from '@/types';
 import { useTranslations } from '@/hooks/use-translations';
 import { useCurrency } from '@/hooks/use-currency';
+import {
+    saveShopCurrency,
+    saveShopLocale,
+    saveShopRegion,
+} from '@/lib/shop-prefs';
 
 interface LocalizationContextType {
     locale: string;
@@ -39,7 +45,8 @@ export function LocalizationProvider({
 }: {
     children: React.ReactNode;
 }) {
-    const props = useSharedProps();
+    const props = useSharedPropsFromBootstrap();
+    const { refresh } = useBootstrap();
     const { t, locale } = useTranslations();
     const { currency, currencies, formatPrice } = useCurrency();
     const region = props.region || 'US';
@@ -51,12 +58,13 @@ export function LocalizationProvider({
     }, [locale]);
 
     const setLocale = (code: string) => {
-        router.post('/locale', { locale: code }, { preserveScroll: true });
+        saveShopLocale(code);
+        void refresh({ locale: code });
     };
 
     const setRegion = (code: string, _localeHint?: string) => {
-        // Backend sets locale + currency cookies from REGION_LOCALES / CURRENCIES.
-        router.post('/region', { region: code }, { preserveScroll: true });
+        saveShopRegion(code);
+        void refresh({ region: code });
     };
 
     const value = useMemo(
@@ -78,4 +86,10 @@ export function LocalizationProvider({
             {children}
         </LocalizationContext.Provider>
     );
+}
+
+/** Read shared props without throwing when nested inside BootstrapProvider. */
+function useSharedPropsFromBootstrap(): SharedData {
+    const { shared } = useBootstrap();
+    return shared;
 }
