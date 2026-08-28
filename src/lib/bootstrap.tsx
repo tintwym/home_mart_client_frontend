@@ -118,12 +118,29 @@ export function BootstrapProvider({ children }: { children: ReactNode }) {
                 setLoading(false);
             }
         },
-        [auth],
+        [auth?.token],
     );
 
     useEffect(() => {
         void refresh();
     }, [refresh, auth?.token]);
+
+    useEffect(() => {
+        (
+            globalThis as unknown as {
+                __hmBootstrapRefresh?: () => void;
+            }
+        ).__hmBootstrapRefresh = () => {
+            void refresh();
+        };
+        return () => {
+            delete (
+                globalThis as unknown as {
+                    __hmBootstrapRefresh?: () => void;
+                }
+            ).__hmBootstrapRefresh;
+        };
+    }, [refresh]);
 
     const shared = useMemo(() => {
         const base = toShared(data, appName);

@@ -1,4 +1,5 @@
 import { Link, router } from '@/lib/app-client';
+import { apiFetch } from '@/lib/api';
 import { useSharedProps } from '@/lib/bootstrap';
 import { Bell, Heart, MessageCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -18,8 +19,7 @@ export function NotificationDropdownContent() {
 
     useEffect(() => {
         if (!auth?.user) return;
-        fetch('/notifications', { headers: { Accept: 'application/json' } })
-            .then((r) => r.json())
+        void apiFetch<Notification[]>('/api/notifications')
             .then(setNotifications)
             .catch(() => setNotifications([]));
     }, [auth?.user]);

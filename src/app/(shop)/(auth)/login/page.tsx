@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { KeyRound } from 'lucide-react';
@@ -20,12 +20,21 @@ import {
     validateEmail,
     validatePassword,
 } from '@/lib/form-validation';
+import { useClientMounted } from '@/hooks/use-client-mounted';
 
 export default function LoginPage() {
     const { login, setSession } = useAuth();
     const router = useRouter();
+    const mounted = useClientMounted();
+    const [passkeySupported, setPasskeySupported] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
+
+    useEffect(() => {
+        if (mounted) {
+            setPasskeySupported(browserSupportsWebAuthn());
+        }
+    }, [mounted]);
 
     const {
         values,
@@ -146,7 +155,7 @@ export default function LoginPage() {
                 </Button>
             </form>
 
-            {browserSupportsWebAuthn() ? (
+            {passkeySupported ? (
                 <Button
                     type="button"
                     variant="ghost"

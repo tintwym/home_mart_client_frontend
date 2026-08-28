@@ -1,4 +1,5 @@
-import { Link, router } from '@/lib/app-client'
+import { Link, router } from '@/lib/app-client';
+import { resolveListingImage } from '@/lib/api';
 import { useSharedProps } from '@/lib/bootstrap';
 import {
     Heart,
@@ -99,7 +100,7 @@ export function ListingCard({ listing }: ListingCardProps) {
     const isTrending =
         listing.trending_until && new Date(listing.trending_until) > new Date();
     const [imageError, setImageError] = useState(false);
-    const imageSrc = listing.image_url ?? listing.image_path ?? null;
+    const imageSrc = resolveListingImage(listing);
     const showImage = imageSrc && !imageError;
 
     // Advanced Business rules & feedback feedback properties
@@ -147,21 +148,19 @@ export function ListingCard({ listing }: ListingCardProps) {
 
     // 3 beautiful gallery images: primary plus 2 premium styling/context views
     const primaryImg =
-        listing.image_url ??
-        listing.image_path ??
+        resolveListingImage(listing) ??
         'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=800&q=80';
     const galleryImages = [
         primaryImg,
         'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=600&q=80',
         'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=80',
     ];
-    const [prevPrimaryImg, setPrevPrimaryImg] = useState(primaryImg);
     const [activeImage, setActiveImage] = useState(primaryImg);
 
-    if (primaryImg !== prevPrimaryImg) {
-        setPrevPrimaryImg(primaryImg);
+    useEffect(() => {
         setActiveImage(primaryImg);
-    }
+        setImageError(false);
+    }, [primaryImg]);
 
     const handleFavoriteToggle = (e: React.MouseEvent) => {
         e.preventDefault();

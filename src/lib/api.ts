@@ -1,15 +1,47 @@
 const TOKEN_KEY = 'hm_token';
 
+function normalizeBase(url: string): string {
+    return url.replace(/\/$/, '');
+}
+
+/**
+ * When the browser runs on a different origin than a localhost API URL (e.g. Next on
+ * :3000 with Spring on :5199), use same-origin /api so Next rewrites still work even
+ * if the JVM backend is down or NEXT_PUBLIC_API_URL is stale.
+ */
+function shouldUseSameOriginProxy(configured: string): boolean {
+    if (typeof window === 'undefined') return false;
+    try {
+        const api = new URL(configured);
+        if (api.hostname !== 'localhost' && api.hostname !== '127.0.0.1') {
+            return false;
+        }
+        const pageHost = window.location.hostname;
+        if (pageHost !== 'localhost' && pageHost !== '127.0.0.1') {
+            return false;
+        }
+        const apiPort = api.port || (api.protocol === 'https:' ? '443' : '80');
+        const pagePort =
+            window.location.port ||
+            (window.location.protocol === 'https:' ? '443' : '80');
+        return apiPort !== pagePort;
+    } catch {
+        return false;
+    }
+}
+
 /** Resolved per-request so browser can use same-origin /api (Vercel rewrites). */
 export function getApiBase(): string {
     const configured = process.env.NEXT_PUBLIC_API_URL?.trim();
-    if (configured) {
-        return configured.replace(/\/$/, '');
-    }
     if (typeof window !== 'undefined') {
-        return '';
+        if (!configured) return '';
+        if (shouldUseSameOriginProxy(configured)) return '';
+        return normalizeBase(configured);
     }
-    return (process.env.BACKEND_URL || 'http://localhost:5199').replace(/\/$/, '');
+    if (configured) {
+        return normalizeBase(configured);
+    }
+    return normalizeBase(process.env.BACKEND_URL || 'http://localhost:5199');
 }
 
 /** @deprecated use getApiBase() — kept for callers that read a string at import time */
