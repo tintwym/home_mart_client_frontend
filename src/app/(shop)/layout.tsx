@@ -1,6 +1,7 @@
 'use client';
 
 import { ShopHeader } from '@/components/shop-header';
+import { AuthModalLayout } from '@/components/auth-modal-layout';
 import Link from 'next/link';
 
 export default function ShopLayout({
@@ -16,7 +17,7 @@ export default function ShopLayout({
             <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
                 {children}
             </main>
-            {modal}
+            {modal ? <AuthModalLayout>{modal}</AuthModalLayout> : null}
             <footer className="border-t border-border/60 py-6 text-center text-sm text-muted-foreground">
                 <Link href="/download" className="hover:text-foreground">
                     Get the app

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { X } from 'lucide-react';
 import AppLogoIcon from '@/components/app-logo-icon';
-import { useSharedProps } from '@/lib/bootstrap';
+import { useCloseAuthModal } from '@/hooks/use-close-auth-modal';
 import { cn } from '@/lib/utils';
 
 type AuthPanelProps = {
@@ -23,49 +23,48 @@ export function AuthPanel({
     showClose = true,
     className,
 }: AuthPanelProps) {
-    const { name } = useSharedProps();
-    const appName = name || 'Home Mart';
+    const close = useCloseAuthModal();
 
     return (
         <div
             className={cn(
-                'relative max-h-[min(90dvh,720px)] overflow-y-auto rounded-2xl border border-primary/15 bg-card/95 p-6 shadow-2xl backdrop-blur-xl supports-[backdrop-filter]:bg-card/85 sm:p-8',
+                'relative max-h-[min(90dvh,680px)] overflow-y-auto rounded-2xl border border-primary/15 bg-card/95 p-5 shadow-2xl backdrop-blur-xl supports-[backdrop-filter]:bg-card/85 sm:p-6',
                 'ring-1 ring-white/40 dark:ring-white/10',
                 className,
             )}
         >
             {showClose ? (
-                <Link
-                    href="/"
-                    className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-full bg-background/50 text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground"
+                <button
+                    type="button"
+                    onClick={close}
+                    className="absolute top-3.5 right-3.5 z-20 flex size-8 items-center justify-center rounded-full bg-background/60 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
                     aria-label="Close"
                 >
                     <X className="size-4" />
-                </Link>
+                </button>
             ) : null}
 
             <div className="flex flex-col items-center text-center">
-                <div className="flex size-14 items-center justify-center overflow-hidden rounded-2xl bg-primary/10 ring-1 ring-primary/20">
-                    <AppLogoIcon className="size-10" />
+                <div className="flex size-12 items-center justify-center overflow-hidden rounded-xl bg-primary/10 ring-1 ring-primary/20">
+                    <AppLogoIcon className="size-9" />
                 </div>
-                <p className="mt-3 text-sm font-semibold tracking-tight text-foreground">
-                    {appName}
-                </p>
             </div>
 
-            <div className="mt-6 text-center">
-                <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+            <div className="mt-4 text-center">
+                <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+                    {title}
+                </h1>
                 {description ? (
-                    <p className="mt-1.5 text-sm text-muted-foreground">
+                    <p className="mt-1 text-sm text-muted-foreground">
                         {description}
                     </p>
                 ) : null}
             </div>
 
-            <div className="mt-6 space-y-5">{children}</div>
+            <div className="mt-4 space-y-4">{children}</div>
 
             {footer ? (
-                <div className="mt-6 border-t border-border/60 pt-5 text-center text-sm text-muted-foreground">
+                <div className="mt-4 border-t border-border/60 pt-4 text-center text-sm text-muted-foreground">
                     {footer}
                 </div>
             ) : null}
@@ -75,7 +74,7 @@ export function AuthPanel({
 
 export function AuthDivider({ label = 'or continue with email' }: { label?: string }) {
     return (
-        <div className="relative flex items-center gap-3 py-1">
+        <div className="relative flex items-center gap-3">
             <div className="h-px flex-1 bg-border/80" />
             <span className="shrink-0 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 {label}
