@@ -7,34 +7,19 @@ import {
     type Auth,
     type UserCredential,
 } from 'firebase/auth';
+import { Config, isFirebaseConfigured } from '@/config';
 
-const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY as string | undefined,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN as
-        | string
-        | undefined,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID as
-        | string
-        | undefined,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID as string | undefined,
-};
+export { isFirebaseConfigured };
+
+const firebaseConfig = Config.firebase;
 
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 
-export function isFirebaseConfigured(): boolean {
-    return Boolean(
-        firebaseConfig.apiKey &&
-            firebaseConfig.authDomain &&
-            firebaseConfig.projectId &&
-            firebaseConfig.appId,
-    );
-}
-
 export function getFirebaseAuth(): Auth {
     if (!isFirebaseConfigured()) {
         throw new Error(
-            'Firebase is not configured. Set NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN, NEXT_PUBLIC_FIREBASE_PROJECT_ID, and NEXT_PUBLIC_FIREBASE_APP_ID.',
+            'Firebase is not configured. Update Config.firebase in src/config.ts.',
         );
     }
     if (!app) {
