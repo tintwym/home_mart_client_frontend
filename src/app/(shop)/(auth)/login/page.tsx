@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation';
 import { KeyRound } from 'lucide-react';
 import { ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import {
+    isTwoFactorRequired,
+    TWO_FACTOR_EMAIL_HINT,
+} from '@/lib/two-factor-redirect';
 import { AuthDivider, AuthPanel } from '@/components/auth/auth-panel';
 import { SocialAuthButtons } from '@/components/auth/social-auth-buttons';
 import { ValidatedField } from '@/components/validated-field';
@@ -201,6 +205,10 @@ export default function LoginPage() {
                             setSession(res.user, res.token);
                             router.push('/');
                         } catch (err) {
+                            if (isTwoFactorRequired(err)) {
+                                setError(TWO_FACTOR_EMAIL_HINT);
+                                return;
+                            }
                             setError(
                                 err instanceof Error
                                     ? err.message

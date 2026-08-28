@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState, type ReactNode } from 'react';
 import NextLink from 'next/link';
 import { apiFetch, ApiError } from '@/lib/api';
+import { getClientRouter } from '@/lib/navigation-bridge';
 import type { AppHref } from '@/types/href';
 
 export type { AppHref };
@@ -101,12 +102,15 @@ async function visit(href: AppHref, options: VisitOptions = {}): Promise<void> {
 
     try {
         if (method === 'get' && isClientNav(rawUrl)) {
-            if (typeof window !== 'undefined') {
+            const clientRouter = getClientRouter();
+            if (clientRouter) {
                 if (options.replace) {
-                    window.history.replaceState(null, '', rawUrl);
+                    clientRouter.replace(rawUrl);
                 } else {
-                    window.location.assign(rawUrl);
+                    clientRouter.push(rawUrl);
                 }
+            } else if (typeof window !== 'undefined') {
+                window.location.assign(rawUrl);
             }
             options.onSuccess?.({ props: {}, url: rawUrl });
             return;

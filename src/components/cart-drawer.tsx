@@ -1,7 +1,11 @@
+'use client';
+
 import { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingCart, X, Trash2, Check, ArrowRight } from 'lucide-react';
-import { Link, router } from '@/lib/app-client'
+import { Link } from '@/lib/app-client'
+import { startCheckout } from '@/lib/checkout';
 import { useSharedProps } from '@/lib/bootstrap';
 import { useCurrency } from '@/hooks/use-currency';
 import { useCart } from '@/hooks/use-cart';
@@ -17,6 +21,7 @@ const CONDITION_KEYS: Record<string, string> = {
 };
 
 export function CartDrawer() {
+    const router = useRouter();
     const { auth } = useSharedProps();
     const { formatPrice, formatAmount, toDisplayAmount } = useCurrency();
     const { t } = useTranslations();
@@ -61,10 +66,18 @@ export function CartDrawer() {
         }
     }, [isOpen, fetchItems]);
 
+    const [checkoutBusy, setCheckoutBusy] = useState(false);
+
     const handleClose = () => setIsOpen(false);
 
     const handleCheckout = () => {
-        router.post('/checkout');
+        setCheckoutBusy(true);
+        void startCheckout(router)
+            .then(() => handleClose())
+            .catch(() => {
+                window.alert('Checkout failed. Please try again from your cart.');
+            })
+            .finally(() => setCheckoutBusy(false));
     };
 
     const orderTotal = items.reduce(
@@ -273,9 +286,12 @@ export function CartDrawer() {
 
                                 <Button
                                     onClick={handleCheckout}
+                                    disabled={checkoutBusy}
                                     className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-zinc-950 py-5.5 text-sm font-bold text-white shadow-md hover:bg-zinc-900 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
                                 >
-                                    {t('cart_drawer.proceed')}
+                                    {checkoutBusy
+                                        ? t('cart_drawer.loading')
+                                        : t('cart_drawer.proceed')}
                                     <ArrowRight className="size-4" />
                                 </Button>
                             </div>

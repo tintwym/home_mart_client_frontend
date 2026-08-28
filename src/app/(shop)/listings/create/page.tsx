@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch, getCategories } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { unwrapCreatedListingId } from '@/lib/checkout';
 import { BackLink, PageHeader } from '@/components/page-kit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,8 +26,15 @@ export default function CreateListingPage() {
     const [price, setPrice] = useState('');
     const [condition, setCondition] = useState('good');
     const [categoryId, setCategoryId] = useState('');
+    const [subcategoryId, setSubcategoryId] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+
+    const selectedCategory = useMemo(
+        () => categories.find((c) => c.id === categoryId),
+        [categories, categoryId],
+    );
+    const subcategories = selectedCategory?.subcategories ?? [];
 
     useEffect(() => {
         if (!authLoading && !user) router.replace('/login');
@@ -43,40 +51,50 @@ export default function CreateListingPage() {
                       (res as { categories?: Category[] }).categories ??
                       []);
                 setCategories(rows as Category[]);
-                if (rows[0]) setCategoryId((rows[0] as Category).id);
+                const first = rows[0] as Category | undefined;
+                if (first) {
+                    setCategoryId(first.id);
+                    setSubcategoryId(first.subcategories?.[0]?.id ?? '');
+                }
             } catch {
                 /* ignore */
             }
         })();
     }, []);
 
+    useEffect(() => {
+        if (!selectedCategory) return;
+        const subs = selectedCategory.subcategories ?? [];
+        if (subs.length === 0) {
+            setSubcategoryId('');
+            return;
+        }
+        if (!subs.some((s) => s.id === subcategoryId)) {
+            setSubcategoryId(subs[0]?.id ?? '');
+        }
+    }, [selectedCategory, subcategoryId]);
+
     const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
         setError(null);
         try {
-            const category = categories.find((c) => c.id === categoryId);
-            const subcategoryId =
-                category?.subcategories?.[0]?.id ?? categoryId;
             if (!subcategoryId) {
-                setError('Choose a category.');
+                setError('Choose a subcategory.');
                 setSaving(false);
                 return;
             }
-            const created = await apiFetch<{ id?: string; listing?: { id: string } }>(
-                '/api/listings',
-                {
-                    method: 'POST',
-                    body: {
-                        title,
-                        description,
-                        price: Number(price),
-                        condition,
-                        subcategoryId: subcategoryId,
-                    },
+            const created = await apiFetch<unknown>('/api/listings', {
+                method: 'POST',
+                body: {
+                    title,
+                    description,
+                    price: Number(price),
+                    condition,
+                    subcategoryId,
                 },
-            );
-            const id = created.id || created.listing?.id;
+            });
+            const id = unwrapCreatedListingId(created);
             router.push(id ? `/listings/${id}` : '/');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to create');
@@ -136,24 +154,55 @@ export default function CreateListingPage() {
                     </select>
                 </div>
                 {categories.length > 0 ? (
-                    <div className="space-y-2">
-                        <Label htmlFor="category">Category</Label>
-                        <select
-                            id="category"
-                            className="border-input bg-background flex h-10 w-full rounded-md border px-3 text-sm"
-                            value={categoryId}
-                            onChange={(e) => setCategoryId(e.target.value)}
-                        >
-                            {categories.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                    {c.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    <>
+                        <div className="space-y-2">
+                            <Label htmlFor="category">Category</Label>
+                            <select
+                                id="category"
+                                className="border-input bg-background flex h-10 w-full rounded-md border px-3 text-sm"
+                                value={categoryId}
+                                onChange={(e) => setCategoryId(e.target.value)}
+                            >
+                                {categories.map((c) => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        {subcategories.length > 0 ? (
+                            <div className="space-y-2">
+                                <Label htmlFor="subcategory">Subcategory</Label>
+                                <select
+                                    id="subcategory"
+                                    className="border-input bg-background flex h-10 w-full rounded-md border px-3 text-sm"
+                                    value={subcategoryId}
+                                    onChange={(e) =>
+                                        setSubcategoryId(e.target.value)
+                                    }
+                                    required
+                                >
+                                    {subcategories.map((s) => (
+                                        <option key={s.id} value={s.id}>
+                                            {s.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        ) : (
+                            <p className="text-sm text-destructive">
+                                This category has no subcategories. Choose
+                                another category.
+                            </p>
+                        )}
+                    </>
                 ) : null}
                 {error ? <p className="text-sm text-destructive">{error}</p> : null}
-                <Button type="submit" disabled={saving} className="w-full">
+                <Button
+                    type="submit"
+                    disabled={saving || !subcategoryId}
+                    className="w-full"
+                >
                     {saving ? 'Saving…' : 'Publish listing'}
                 </Button>
             </form>

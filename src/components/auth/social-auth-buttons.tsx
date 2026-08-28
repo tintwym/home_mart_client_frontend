@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSocialAuth } from '@/hooks/use-social-auth';
@@ -46,8 +47,12 @@ export function SocialAuthButtons({
     disabled = false,
     onError,
 }: SocialAuthButtonsProps) {
-    const { available, busyProvider, isBusy, signInWithProvider } =
+    const { available, busyProvider, isBusy, error, signInWithProvider } =
         useSocialAuth();
+
+    useEffect(() => {
+        if (error) onError?.(error);
+    }, [error, onError]);
 
     if (!available) {
         return null;

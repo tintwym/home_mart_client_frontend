@@ -5,8 +5,12 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { SiteSearchBar } from '@/components/site-search-bar';
+import { RegionSwitcher } from '@/components/region-switcher';
+import { CurrencySwitcher } from '@/components/currency-switcher';
+import { NotificationDropdown } from '@/components/notification-dropdown';
 import { useAuth } from '@/lib/auth';
 import { useSharedProps } from '@/lib/bootstrap';
+import { useCart } from '@/hooks/use-cart';
 import { Button } from '@/components/ui/button';
 import {
     Heart,
@@ -23,8 +27,10 @@ function ShopHeaderInner() {
     const searchQuery = searchParams.get('q')?.trim() ?? '';
     const { user, logout, loading } = useAuth();
     const shared = useSharedProps();
-    const cartCount =
-        shared.auth.cartCount ?? shared.auth.cartListingIds?.length ?? 0;
+    const { count: cartHookCount } = useCart();
+    const cartCount = user
+        ? cartHookCount
+        : (shared.auth.cartCount ?? shared.auth.cartListingIds?.length ?? 0);
     const unread = shared.auth.chatUnreadCount ?? 0;
     const appName = shared.name || 'Home Mart';
 
@@ -50,6 +56,9 @@ function ShopHeaderInner() {
                 />
 
                 <nav className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+                    <RegionSwitcher />
+                    <CurrencySwitcher />
+                    {user ? <NotificationDropdown /> : null}
                     <Button variant="ghost" size="icon" asChild>
                         <Link href="/listings/create" aria-label="Sell">
                             <Plus className="h-5 w-5" />

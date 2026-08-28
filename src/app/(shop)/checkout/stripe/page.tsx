@@ -1,15 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { apiFetch, getCart } from '@/lib/api';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { startStripeCheckout } from '@/lib/checkout';
+import { getCart } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { BackLink, PageHeader, PageLoading } from '@/components/page-kit';
 import { Button } from '@/components/ui/button';
 
-export default function StripeCheckoutPage() {
+function StripeCheckoutInner() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const orderId = searchParams.get('orderId') ?? '';
     const [itemCount, setItemCount] = useState(0);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -32,16 +35,15 @@ export default function StripeCheckoutPage() {
     }, [authLoading, user, router]);
 
     const start = async () => {
+        if (!orderId) {
+            setError('Missing order. Start checkout from your cart.');
+            return;
+        }
         setBusy(true);
         setError(null);
         try {
-            const res = await apiFetch<{
-                url?: string;
-                checkout_url?: string;
-            }>('/api/checkout/stripe', { method: 'POST', body: {} });
-            const url = res.url || res.checkout_url;
-            if (url) window.location.href = url;
-            else setError('No checkout URL returned');
+            const url = await startStripeCheckout(orderId);
+            window.location.href = url;
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Checkout failed');
         } finally {
@@ -61,11 +63,24 @@ export default function StripeCheckoutPage() {
             {error ? <p className="mb-3 text-sm text-destructive">{error}</p> : null}
             <Button
                 className="w-full"
-                disabled={busy || itemCount === 0}
+                disabled={busy || itemCount === 0 || !orderId}
                 onClick={() => void start()}
             >
                 {busy ? 'Redirecting…' : 'Pay with Stripe'}
             </Button>
+            {!orderId ? (
+                <p className="mt-3 text-sm text-muted-foreground">
+                    Start checkout from your cart to create an order first.
+                </p>
+            ) : null}
         </div>
+    );
+}
+
+export default function StripeCheckoutPage() {
+    return (
+        <Suspense fallback={<PageLoading />}>
+            <StripeCheckoutInner />
+        </Suspense>
     );
 }

@@ -172,8 +172,18 @@ export type AuthUser = {
     avatar?: string | null;
     email_verified_at?: string | null;
     two_factor_enabled?: boolean;
+    two_factor_confirmed_at?: string | null;
     [key: string]: unknown;
 };
+
+export function normalizeAuthUser(user: AuthUser): AuthUser {
+    return {
+        ...user,
+        two_factor_enabled: Boolean(
+            user.two_factor_enabled ?? user.two_factor_confirmed_at,
+        ),
+    };
+}
 
 export type TokenResponse = {
     user: AuthUser;
@@ -219,7 +229,8 @@ export async function getBootstrap(params?: {
 }
 
 export async function getUser(): Promise<AuthUser> {
-    return apiFetch<AuthUser>('/api/user');
+    const user = await apiFetch<AuthUser>('/api/user');
+    return normalizeAuthUser(user);
 }
 
 export async function login(
@@ -291,6 +302,7 @@ export type ListingReview = {
 export type ListingDetail = {
     id: string;
     user_id?: string;
+    subcategory_id?: string | null;
     title: string;
     description?: string | null;
     condition?: string;

@@ -1,3 +1,5 @@
+'use client';
+
 import { useSharedProps } from '@/lib/bootstrap';
 import { Globe, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';

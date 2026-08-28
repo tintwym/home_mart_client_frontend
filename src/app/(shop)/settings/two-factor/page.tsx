@@ -9,15 +9,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+function qrImageUrl(otpauthUrl: string): string {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(otpauthUrl)}`;
+}
+
 export default function TwoFactorSettingsPage() {
     const { user, loading, refresh } = useAuth();
     const router = useRouter();
     const [qr, setQr] = useState<string | null>(null);
+    const [otpAuthUrl, setOtpAuthUrl] = useState<string | null>(null);
     const [code, setCode] = useState('');
     const [recovery, setRecovery] = useState<string[]>([]);
     const [message, setMessage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const enabled = Boolean(user?.two_factor_enabled);
+    const enabled = Boolean(
+        user?.two_factor_enabled ?? user?.two_factor_confirmed_at,
+    );
 
     useEffect(() => {
         if (!loading && !user) router.replace('/login');
@@ -45,15 +52,21 @@ export default function TwoFactorSettingsPage() {
                         onClick={async () => {
                             setError(null);
                             try {
-                                await apiFetch(
-                                    '/api/user/two-factor-authentication',
-                                    { method: 'POST', body: {} },
-                                );
+                                const enableRes = await apiFetch<{
+                                    recovery_codes?: string[];
+                                }>('/api/user/two-factor-authentication', {
+                                    method: 'POST',
+                                    body: {},
+                                });
+                                if (enableRes.recovery_codes?.length) {
+                                    setRecovery(enableRes.recovery_codes);
+                                }
                                 const qrRes = await apiFetch<{
-                                    svg?: string;
-                                    url?: string;
+                                    otpauth_url?: string;
                                 }>('/api/user/two-factor-qr-code');
-                                setQr(qrRes.svg || qrRes.url || null);
+                                const url = qrRes.otpauth_url ?? null;
+                                setOtpAuthUrl(url);
+                                setQr(url ? qrImageUrl(url) : null);
                                 setMessage('Scan the QR code, then confirm.');
                             } catch (e) {
                                 setError(
@@ -68,15 +81,17 @@ export default function TwoFactorSettingsPage() {
                     </Button>
                     {qr ? (
                         <div className="space-y-3">
-                            {qr.startsWith('<') ? (
-                                <div
-                                    className="rounded-md border border-border bg-white p-4"
-                                    dangerouslySetInnerHTML={{ __html: qr }}
-                                />
-                            ) : (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={qr} alt="2FA QR" className="max-w-xs" />
-                            )}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src={qr}
+                                alt="2FA QR code"
+                                className="max-w-xs rounded-md border border-border bg-white p-2"
+                            />
+                            {otpAuthUrl ? (
+                                <p className="break-all font-mono text-xs text-muted-foreground">
+                                    {otpAuthUrl}
+                                </p>
+                            ) : null}
                             <div className="space-y-2">
                                 <Label htmlFor="code">Confirmation code</Label>
                                 <Input
@@ -103,6 +118,7 @@ export default function TwoFactorSettingsPage() {
                                         setRecovery(codes.recovery_codes ?? []);
                                         await refresh();
                                         setMessage('2FA confirmed');
+                                        setQr(null);
                                     } catch (e) {
                                         setError(
                                             e instanceof Error
@@ -129,6 +145,7 @@ export default function TwoFactorSettingsPage() {
                                 );
                                 await refresh();
                                 setMessage('2FA disabled');
+                                setRecovery([]);
                             } catch (e) {
                                 setError(
                                     e instanceof Error

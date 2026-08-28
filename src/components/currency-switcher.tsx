@@ -1,3 +1,5 @@
+'use client';
+
 import { useBootstrap, useSharedProps } from '@/lib/bootstrap';
 import { Coins, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';

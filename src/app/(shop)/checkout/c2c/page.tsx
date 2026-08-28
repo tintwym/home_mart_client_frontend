@@ -1,30 +1,62 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { arrangeMeetup } from '@/lib/checkout';
 import { useAuth } from '@/lib/auth';
-import { BackLink, PageHeader } from '@/components/page-kit';
+import { useBootstrap } from '@/lib/bootstrap';
+import { BackLink, PageHeader, PageLoading } from '@/components/page-kit';
 import { Button } from '@/components/ui/button';
 
 export default function C2CCheckoutPage() {
-    const { user } = useAuth();
+    return (
+        <Suspense fallback={<PageLoading />}>
+            <C2CCheckoutInner />
+        </Suspense>
+    );
+}
+
+function C2CCheckoutInner() {
+    const { user, loading: authLoading } = useAuth();
+    const { refresh } = useBootstrap();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const orderId = searchParams.get('orderId') ?? '';
+    const region = (searchParams.get('region') ?? 'MM').toUpperCase();
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [done, setDone] = useState(false);
 
-    if (!user) {
-        if (typeof window !== 'undefined') router.replace('/login');
-        return null;
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.replace('/login');
+        }
+    }, [authLoading, user, router]);
+
+    if (authLoading || !user) {
+        return authLoading ? <PageLoading /> : null;
     }
+
+    if (!orderId) {
+        return (
+            <div className="mx-auto max-w-md">
+                <BackLink href="/cart" label="Cart" />
+                <PageHeader title="Cash / meetup checkout" />
+                <p className="text-sm text-destructive">
+                    Missing order. Start checkout from your cart.
+                </p>
+            </div>
+        );
+    }
+
+    const checkoutRegion = region === 'VN' ? 'VN' : 'MM';
 
     return (
         <div className="mx-auto max-w-md">
             <BackLink href="/cart" label="Cart" />
             <PageHeader
                 title="Cash / meetup checkout"
-                description="Arrange a customer-to-customer handoff for your cart."
+                description="Arrange a customer-to-customer handoff for your order."
             />
             {done ? (
                 <p className="text-sm text-primary">
@@ -42,10 +74,8 @@ export default function C2CCheckoutPage() {
                             setBusy(true);
                             setError(null);
                             try {
-                                await apiFetch('/api/checkout', {
-                                    method: 'POST',
-                                    body: { method: 'c2c' },
-                                });
+                                await arrangeMeetup(checkoutRegion, orderId);
+                                await refresh();
                                 setDone(true);
                             } catch (e) {
                                 setError(

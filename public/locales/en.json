@@ -504,6 +504,7 @@
     "checkout.mm_wallets_heading": "MMQR & local methods",
     "checkout.mm_mmqr_title": "MMQR payment",
     "checkout.mm_scan_mmqr": "Open your bank or wallet app and scan this MMQR to pay.",
+    "checkout.mm_confirm_payment": "Confirm payment :amount",
     "checkout.mm_placeholder_mpu": "1234",
     "checkout.placeholder_optional": "Optional",
     "checkout.mm_placeholder_phone": "09 xxx xxx xxx",

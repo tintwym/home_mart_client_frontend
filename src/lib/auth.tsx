@@ -20,6 +20,7 @@ import {
     register as apiRegister,
     setToken,
     type AuthUser,
+    normalizeAuthUser,
 } from '@/lib/api';
 
 type AuthContextValue = {
@@ -49,9 +50,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     const setSession = useCallback((nextUser: AuthUser, nextToken: string) => {
+        const user = normalizeAuthUser(nextUser);
         setToken(nextToken);
         setTokenState(nextToken);
-        setUser(nextUser);
+        setUser(user);
     }, []);
 
     const refresh = useCallback(async () => {

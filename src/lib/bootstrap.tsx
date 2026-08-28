@@ -57,9 +57,21 @@ function toShared(data: BootstrapData | null, appName: string): SharedData {
 
     let currency = data.currency as SharedData['currency'];
     if (typeof data.currency === 'string' && data.currencies) {
-        currency = (data.currencies as Record<string, SharedData['currency']>)[
-            data.currency
-        ] as SharedData['currency'];
+        const currenciesMap = data.currencies as Record<
+            string,
+            SharedData['currency']
+        >;
+        const code = data.currency;
+        const byCode = Object.values(currenciesMap).find(
+            (entry) =>
+                entry &&
+                typeof entry === 'object' &&
+                (entry as { code?: string }).code === code,
+        );
+        currency =
+            (byCode as SharedData['currency']) ??
+            (currenciesMap[code] as SharedData['currency']) ??
+            currency;
     }
 
     return {

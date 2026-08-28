@@ -48,6 +48,7 @@ import {
 } from '@/components/ui/tooltip';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
+import { useClientMounted } from '@/hooks/use-client-mounted';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { useTranslations } from '@/hooks/use-translations';
 import { toUrl } from '@/lib/utils';
@@ -92,27 +93,28 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     const mobileNavCleanup = useMobileNavigation();
     const [headerLogoutOpen, setHeaderLogoutOpen] = useState(false);
     const [sheetOpen, setSheetOpen] = useState(false);
-
-    const [recentSearches, setRecentSearches] = useState<string[]>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const stored = localStorage.getItem('recent_searches');
-                if (stored) {
-                    const parsed = JSON.parse(stored);
-                    if (Array.isArray(parsed)) {
-                        return parsed.filter(
-                            (item): item is string => typeof item === 'string',
-                        );
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to load recent searches', err);
-            }
-        }
-        return [];
-    });
+    const mounted = useClientMounted();
+    const [recentSearches, setRecentSearches] = useState<string[]>([]);
     const [showRecentDropdown, setShowRecentDropdown] = useState(false);
     const dropdownRef = useRef<HTMLFormElement>(null);
+
+    useEffect(() => {
+        if (!mounted) return;
+        try {
+            const stored = localStorage.getItem('recent_searches');
+            if (!stored) return;
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                setRecentSearches(
+                    parsed.filter(
+                        (item): item is string => typeof item === 'string',
+                    ),
+                );
+            }
+        } catch (err) {
+            console.error('Failed to load recent searches', err);
+        }
+    }, [mounted]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

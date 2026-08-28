@@ -1,26 +1,58 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { arrangeMeetup, submitLocalPayment } from '@/lib/checkout';
 import { useAuth } from '@/lib/auth';
-import { BackLink, PageHeader } from '@/components/page-kit';
+import { useBootstrap } from '@/lib/bootstrap';
+import { BackLink, PageHeader, PageLoading } from '@/components/page-kit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function VietnamCheckoutPage() {
-    const { user } = useAuth();
+    return (
+        <Suspense fallback={<PageLoading />}>
+            <VietnamCheckoutInner />
+        </Suspense>
+    );
+}
+
+function VietnamCheckoutInner() {
+    const { user, loading: authLoading } = useAuth();
+    const { refresh } = useBootstrap();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const orderId = searchParams.get('orderId') ?? '';
     const [method, setMethod] = useState('momo');
-    const [reference, setReference] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [done, setDone] = useState(false);
 
-    if (!user) {
-        if (typeof window !== 'undefined') router.replace('/login');
-        return null;
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.replace('/login');
+        }
+    }, [authLoading, user, router]);
+
+    if (authLoading || !user) {
+        return authLoading ? <PageLoading /> : null;
+    }
+
+    if (!orderId) {
+        return (
+            <div className="mx-auto max-w-md">
+                <BackLink href="/cart" label="Cart" />
+                <PageHeader title="Vietnam payment" />
+                <p className="text-sm text-destructive">
+                    Missing order. Start checkout from your cart.
+                </p>
+                <Button className="mt-4" asChild>
+                    <a href="/cart">Back to cart</a>
+                </Button>
+            </div>
+        );
     }
 
     return (
@@ -28,7 +60,7 @@ export default function VietnamCheckoutPage() {
             <BackLink href="/cart" label="Cart" />
             <PageHeader
                 title="Vietnam payment"
-                description="Submit local payment details for your cart."
+                description="Submit local payment details for your order."
             />
             {done ? (
                 <p className="text-sm text-primary">
@@ -42,10 +74,13 @@ export default function VietnamCheckoutPage() {
                         setBusy(true);
                         setError(null);
                         try {
-                            await apiFetch('/api/checkout/vn/pay', {
-                                method: 'POST',
-                                body: { method, reference },
-                            });
+                            await submitLocalPayment(
+                                'VN',
+                                orderId,
+                                method,
+                                identifier,
+                            );
+                            await refresh();
                             setDone(true);
                         } catch (err) {
                             setError(
@@ -67,16 +102,16 @@ export default function VietnamCheckoutPage() {
                             onChange={(e) => setMethod(e.target.value)}
                         >
                             <option value="momo">MoMo</option>
-                            <option value="zalopay">ZaloPay</option>
-                            <option value="vietqr">VietQR</option>
+                            <option value="zalo_pay">ZaloPay</option>
+                            <option value="viet_qr">VietQR</option>
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="reference">Transaction reference</Label>
+                        <Label htmlFor="identifier">Transaction reference</Label>
                         <Input
-                            id="reference"
-                            value={reference}
-                            onChange={(e) => setReference(e.target.value)}
+                            id="identifier"
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
                             required
                         />
                     </div>
@@ -93,11 +128,10 @@ export default function VietnamCheckoutPage() {
                         disabled={busy}
                         onClick={async () => {
                             setBusy(true);
+                            setError(null);
                             try {
-                                await apiFetch('/api/checkout/vn/arrange', {
-                                    method: 'POST',
-                                    body: {},
-                                });
+                                await arrangeMeetup('VN', orderId);
+                                await refresh();
                                 setDone(true);
                             } catch (err) {
                                 setError(

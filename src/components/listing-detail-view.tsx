@@ -140,7 +140,13 @@ export function ListingDetailView({ id }: ListingDetailViewProps) {
 
                     {listing.price != null ? (
                         <p className="mt-3 text-2xl font-semibold text-primary">
-                            <CurrencyFormatter amount={listing.price} />
+                            <CurrencyFormatter
+                                amount={listing.price}
+                                sellerRegion={
+                                    listing.user?.region ??
+                                    listing.seller?.region
+                                }
+                            />
                         </p>
                     ) : null}
 

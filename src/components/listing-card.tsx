@@ -1,3 +1,5 @@
+'use client';
+
 import { Link, router } from '@/lib/app-client';
 import { resolveListingImage } from '@/lib/api';
 import { useBootstrap, useSharedProps } from '@/lib/bootstrap';
@@ -172,19 +174,19 @@ export function ListingCard({ listing }: ListingCardProps) {
             router.get('/login');
             return;
         }
-        const nextIsFavorite = !isFavorite;
         router.post(
             `/listings/${listing.id}/favorite`,
             {},
             {
                 preserveScroll: true,
-                onSuccess: () => {
+                onSuccess: (page) => {
                     void refresh();
+                    const favorited = page.props.favorited === true;
                     toast({
-                        title: nextIsFavorite
+                        title: favorited
                             ? 'Added to Favorites'
                             : 'Removed from Favorites',
-                        description: `"${listing.title}" has been ${nextIsFavorite ? 'added to' : 'removed from'} your wishlist.`,
+                        description: `"${listing.title}" has been ${favorited ? 'added to' : 'removed from'} your wishlist.`,
                         variant: 'success',
                     });
                 },

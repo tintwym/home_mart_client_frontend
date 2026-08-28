@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { startCheckout } from '@/lib/checkout';
 import { apiFetch, getCart } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { PageError, PageHeader, PageLoading } from '@/components/page-kit';
@@ -105,17 +106,18 @@ export default function CartPage() {
                         })}
                     </ul>
                     <div className="flex flex-wrap gap-2">
-                        <Button asChild>
-                            <Link href="/checkout/stripe">Stripe checkout</Link>
-                        </Button>
-                        <Button variant="outline" asChild>
-                            <Link href="/checkout/myanmar">Myanmar pay</Link>
-                        </Button>
-                        <Button variant="outline" asChild>
-                            <Link href="/checkout/vietnam">Vietnam pay</Link>
-                        </Button>
-                        <Button variant="secondary" asChild>
-                            <Link href="/checkout/c2c">Cash / meetup</Link>
+                        <Button
+                            onClick={() => {
+                                void startCheckout(router).catch((e) => {
+                                    setError(
+                                        e instanceof Error
+                                            ? e.message
+                                            : 'Checkout failed',
+                                    );
+                                });
+                            }}
+                        >
+                            Checkout
                         </Button>
                     </div>
                 </div>
