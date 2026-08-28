@@ -2,26 +2,24 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback } from 'react';
-
-const AUTH_OVERLAY_PATHS = new Set([
-    '/login',
-    '/register',
-    '/forgot-password',
-]);
+import { isAuthOverlayPath } from '@/lib/auth-overlay-paths';
 
 export function useCloseAuthModal() {
     const router = useRouter();
     const pathname = usePathname();
 
     return useCallback(() => {
-        if (pathname && AUTH_OVERLAY_PATHS.has(pathname)) {
+        if (!isAuthOverlayPath(pathname)) {
             router.replace('/');
             return;
         }
+
+        // Soft-navigated modals: back dismisses the intercepted route cleanly.
         if (typeof window !== 'undefined' && window.history.length > 1) {
             router.back();
             return;
         }
+
         router.replace('/');
     }, [pathname, router]);
 }
