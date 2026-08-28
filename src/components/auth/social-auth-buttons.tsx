@@ -80,7 +80,8 @@ export function SocialAuthButtons({
                 loading={busyProvider === 'apple'}
                 disabled={disabled || isBusy}
                 onClick={() => void handleClick('apple')}
-                className="bg-foreground text-background hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                variant="default"
+                className="border border-black bg-black text-white shadow-sm hover:border-neutral-800 hover:bg-neutral-800 hover:text-white dark:border-white dark:bg-white dark:text-black dark:hover:border-neutral-200 dark:hover:bg-neutral-100 dark:hover:text-black"
             />
         </div>
     );
@@ -92,6 +93,7 @@ function SocialButton({
     loading,
     disabled,
     onClick,
+    variant = 'outline',
     className,
 }: {
     label: string;
@@ -99,16 +101,19 @@ function SocialButton({
     loading?: boolean;
     disabled?: boolean;
     onClick: () => void;
+    variant?: 'outline' | 'default';
     className?: string;
 }) {
     return (
         <Button
             type="button"
-            variant="outline"
+            variant={variant}
             disabled={disabled || loading}
             onClick={onClick}
             className={cn(
-                'h-11 w-full justify-center gap-2.5 border-border/80 bg-background/80 font-medium shadow-sm',
+                'h-11 w-full justify-center gap-2.5 font-medium',
+                variant === 'outline' &&
+                    'border-border/80 bg-background/80 shadow-sm hover:bg-muted hover:text-foreground',
                 className,
             )}
         >
