@@ -1,5 +1,6 @@
 'use client';
 
+import { MobileBottomTabBar } from '@/components/mobile-bottom-tab-bar';
 import { ShopHeader } from '@/components/shop-header';
 import { AuthModalLayout } from '@/components/auth-modal-layout';
 import { LocalizationProvider } from '@/components/localization-provider';
@@ -42,15 +43,16 @@ export default function ShopLayout({
             <div className="flex min-h-dvh flex-col">
                 <BootstrapErrorBanner />
                 <ShopHeader />
-                <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
+                <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:pb-6">
                     {mainContent}
                 </main>
+                <MobileBottomTabBar />
                 {authOverlayOpen && overlayContent ? (
                     <AuthModalLayout key={pathname}>
                         {overlayContent}
                     </AuthModalLayout>
                 ) : null}
-                <footer className="border-t border-border/60 py-6 text-center text-sm text-muted-foreground">
+                <footer className="hidden border-t border-border/60 py-6 text-center text-sm text-muted-foreground lg:block">
                     <Link href="/download" className="hover:text-foreground">
                         Get the app
                     </Link>
