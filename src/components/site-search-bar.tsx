@@ -65,7 +65,7 @@ export function SiteSearchBar({
                 router.push(q ? `/?q=${encodeURIComponent(q)}` : '/');
             }}
         >
-            <div className="relative flex min-w-0 items-center overflow-hidden rounded-lg border border-primary/20 bg-card shadow-xs">
+            <div className="relative flex min-w-0 items-center overflow-hidden rounded-xl border border-primary/20 bg-card/95 shadow-sm transition-[box-shadow,border-color] focus-within:border-primary/40 focus-within:shadow-md focus-within:ring-2 focus-within:ring-primary/15">
                 <input
                     ref={inputRef}
                     type="search"
@@ -74,20 +74,20 @@ export function SiteSearchBar({
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder={placeholder}
                     className={cn(
-                        'min-w-0 flex-1 border-0 bg-transparent pl-3 text-sm outline-none placeholder:text-muted-foreground',
-                        compact ? 'py-2 pr-9' : 'py-2.5 pr-10 md:pl-4',
+                        'min-w-0 flex-1 border-0 bg-transparent pl-3.5 text-sm outline-none placeholder:text-muted-foreground',
+                        compact ? 'py-2.5 pr-10' : 'py-3 pr-11 md:pl-4',
                     )}
                     aria-label={ariaLabel}
                 />
                 <button
                     type="submit"
                     className={cn(
-                        'absolute top-0 right-0 flex h-full items-center justify-center bg-transparent text-muted-foreground transition-colors hover:text-foreground',
-                        compact ? 'w-9' : 'w-10',
+                        'absolute top-0 right-0 flex h-full items-center justify-center rounded-r-xl bg-primary/10 text-primary transition-colors hover:bg-primary/15 hover:text-primary',
+                        compact ? 'w-10' : 'w-11',
                     )}
                     aria-label={buttonLabel}
                 >
-                    <Search className="size-4 shrink-0 md:size-5" />
+                    <Search className="size-4 shrink-0 md:size-[1.125rem]" />
                 </button>
             </div>
         </form>

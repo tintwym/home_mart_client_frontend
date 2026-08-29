@@ -193,6 +193,19 @@
         color-scheme: dark;
     }
 
+    /* Shared shop UI primitives */
+    .count-badge {
+        @apply absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground ring-2 ring-background;
+    }
+
+    .shop-hero {
+        @apply relative overflow-hidden rounded-2xl border border-primary/10 bg-gradient-to-br from-primary/12 via-secondary/20 to-accent/12;
+    }
+
+    .shop-pill {
+        @apply rounded-full border border-primary/15 bg-card/90 px-3.5 py-1.5 text-sm shadow-xs transition-all duration-200 hover:border-primary/35 hover:bg-primary/5 hover:shadow-sm;
+    }
+
     /* Prevent iOS zoom on input focus (font-size >= 16px) */
     @media screen and (max-width: 768px) {
         input[type='text'],

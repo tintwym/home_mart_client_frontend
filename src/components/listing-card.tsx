@@ -210,7 +210,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                             onError={() => setImageError(true)}
                         />
                     ) : (
-                        <div className="flex size-full flex-col items-center justify-center gap-1.5 bg-zinc-100 text-xs text-zinc-400 dark:bg-zinc-800/40 dark:text-zinc-500">
+                        <div className="flex size-full flex-col items-center justify-center gap-1.5 bg-muted/50 text-xs text-muted-foreground">
                             <Maximize2 className="size-5 stroke-[1.5]" />
                             <span>{t('listing.no_image')}</span>
                         </div>
@@ -227,19 +227,19 @@ export function ListingCard({ listing }: ListingCardProps) {
                             {formatRelativeTime(listing.created_at, t)}
                         </span>
                         {isTrending && (
-                            <span className="inline-flex animate-pulse items-center gap-1 rounded-md bg-amber-500 px-2 py-0.5 text-[10px] font-bold tracking-wider text-zinc-950 uppercase shadow-sm">
-                                <span className="size-1.5 animate-ping rounded-full bg-zinc-950" />
+                            <span className="inline-flex animate-pulse items-center gap-1 rounded-md bg-chart-1 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-sm">
+                                <span className="size-1.5 animate-ping rounded-full bg-white/80" />
                                 {t('listing.trending')}
                             </span>
                         )}
                         {isNewArrival && (
-                            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-sm">
-                                New Arrival
+                            <span className="inline-flex items-center gap-1 rounded-md bg-chart-4 px-2 py-0.5 text-[10px] font-bold tracking-wider text-accent-foreground uppercase shadow-sm">
+                                New
                             </span>
                         )}
                         {isBestseller && (
-                            <span className="inline-flex items-center gap-1 rounded-md bg-rose-600 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-sm">
-                                Bestseller
+                            <span className="inline-flex items-center gap-1 rounded-md bg-chart-1 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-sm">
+                                Top rated
                             </span>
                         )}
                     </div>
@@ -317,7 +317,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                 )}
 
                 {/* Micro-interaction Overlay Controls (fade in on hover) */}
-                <div className="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-between opacity-0 transition-opacity duration-300 group-hover/card:opacity-100">
+                <div className="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-between opacity-100 transition-opacity duration-300 sm:opacity-0 sm:group-hover/card:opacity-100">
                     {/* Floating Expand/Quick-View Button */}
                     <button
                         type="button"
@@ -326,7 +326,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                             e.stopPropagation();
                             setIsQuickViewOpen(true);
                         }}
-                        className="pointer-events-auto flex size-8 items-center justify-center rounded-lg bg-white/95 text-zinc-700 shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:text-primary active:scale-95 dark:bg-zinc-900/95 dark:text-zinc-200 dark:hover:text-primary"
+                        className="pointer-events-auto flex size-8 items-center justify-center rounded-lg bg-card/95 text-foreground shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:text-primary active:scale-95"
                         aria-label="Quick view"
                     >
                         <Maximize2 className="size-4" />
@@ -337,14 +337,14 @@ export function ListingCard({ listing }: ListingCardProps) {
                         type="button"
                         disabled={isOutOfStock}
                         onClick={handleFavoriteToggle}
-                        className="pointer-events-auto flex size-8 items-center justify-center rounded-lg bg-white/95 shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-zinc-900/95"
+                        className="pointer-events-auto flex size-8 items-center justify-center rounded-lg bg-card/95 shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                         aria-label="Add to favorites"
                     >
                         <Heart
                             className={`size-4 transition-colors ${
                                 isFavorite
-                                    ? 'fill-rose-500 text-rose-500'
-                                    : 'text-zinc-600 hover:text-rose-500 dark:text-zinc-300'
+                                    ? 'fill-primary text-primary'
+                                    : 'text-muted-foreground hover:text-primary'
                             }`}
                         />
                     </button>
@@ -352,18 +352,18 @@ export function ListingCard({ listing }: ListingCardProps) {
             </div>
 
             {/* Product details - compact, extremely polished details */}
-            <div className="flex min-w-0 flex-1 flex-col gap-2 bg-white/50 p-3.5 dark:bg-zinc-900/10">
+            <div className="flex min-w-0 flex-1 flex-col gap-2 bg-muted/15 p-3.5">
                 {/* Category & Condition Tag Row */}
                 <div className="flex items-center justify-between gap-2 text-[10px]">
-                    <span className="truncate font-bold tracking-wider text-zinc-400 uppercase dark:text-zinc-500">
+                    <span className="truncate font-bold tracking-wider text-muted-foreground uppercase">
                         {listing.category?.name ?? 'General'}
                     </span>
                     <span
                         className={`inline-flex rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase ${
                             listing.condition === 'new' ||
                             listing.condition === 'like_new'
-                                ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400'
-                                : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-400'
+                                ? 'bg-primary/10 text-primary'
+                                : 'bg-muted text-muted-foreground'
                         }`}
                     >
                         {CONDITION_KEYS[listing.condition]
@@ -378,7 +378,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                         href={`/listings/${listing.id}`}
                         className="block min-w-0 transition-colors group-hover/card:text-primary"
                     >
-                        <h3 className="line-clamp-2 text-sm leading-snug font-semibold text-zinc-800 dark:text-zinc-200">
+                        <h3 className="line-clamp-2 text-sm leading-snug font-semibold text-foreground">
                             {listing.title}
                         </h3>
                     </Link>

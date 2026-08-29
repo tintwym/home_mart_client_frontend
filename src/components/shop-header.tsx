@@ -35,17 +35,17 @@ function ShopHeaderInner() {
     const appName = shared.name || 'Home Mart';
 
     return (
-        <header className="sticky top-0 z-40 border-b border-border/60 bg-[var(--header-tint)] backdrop-blur-md">
-            <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6">
+        <header className="sticky top-0 z-40 border-b border-border/50 bg-[var(--header-tint)] shadow-[0_1px_0_0_oklch(0.66_0.115_175_/_0.06)] backdrop-blur-xl">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6">
                 <div className="flex h-12 items-center gap-2 sm:h-14 lg:h-16">
                     <Link
                         href="/"
-                        className="flex shrink-0 items-center gap-2 text-foreground"
+                        className="flex min-w-0 shrink-0 items-center gap-2 text-foreground"
                     >
-                        <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-primary/10 sm:size-9">
+                        <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10 ring-1 ring-primary/15 sm:size-9">
                             <AppLogoIcon className="size-full" />
                         </span>
-                        <span className="hidden text-lg font-semibold tracking-tight sm:inline">
+                        <span className="truncate text-base font-semibold tracking-tight sm:text-lg">
                             {appName}
                         </span>
                     </Link>
@@ -56,14 +56,12 @@ function ShopHeaderInner() {
                         className="mx-2 hidden min-w-0 flex-1 lg:block"
                     />
 
-                    <nav className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
-                        {/* Mobile / tablet: region + currency */}
+                    <nav className="ml-auto flex shrink-0 items-center gap-1">
                         <div className="flex items-center gap-0.5 lg:hidden">
                             <RegionSwitcher />
                             <CurrencySwitcher compact />
                         </div>
 
-                        {/* Desktop utilities */}
                         <div className="hidden items-center gap-0.5 lg:flex">
                             <RegionSwitcher />
                             <CurrencySwitcher />
@@ -83,14 +81,30 @@ function ShopHeaderInner() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="relative"
+                            className="relative hidden lg:inline-flex"
                             asChild
                         >
                             <Link href="/cart" aria-label="Cart">
                                 <ShoppingBag className="h-5 w-5" />
                                 {cartCount > 0 ? (
-                                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
+                                    <span className="count-badge">
                                         {cartCount}
+                                    </span>
+                                ) : null}
+                            </Link>
+                        </Button>
+
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="relative lg:hidden"
+                            asChild
+                        >
+                            <Link href="/inbox" aria-label="Inbox">
+                                <MessageSquare className="h-5 w-5" />
+                                {unread > 0 ? (
+                                    <span className="count-badge">
+                                        {unread > 99 ? '99+' : unread}
                                     </span>
                                 ) : null}
                             </Link>
@@ -105,8 +119,8 @@ function ShopHeaderInner() {
                             <Link href="/inbox" aria-label="Inbox">
                                 <MessageSquare className="h-5 w-5" />
                                 {unread > 0 ? (
-                                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
-                                        {unread}
+                                    <span className="count-badge">
+                                        {unread > 99 ? '99+' : unread}
                                     </span>
                                 ) : null}
                             </Link>
@@ -151,7 +165,7 @@ function ShopHeaderInner() {
                     </nav>
                 </div>
 
-                <div className="pb-2 lg:hidden">
+                <div className="pb-2.5 lg:hidden">
                     <SiteSearchBar defaultQuery={searchQuery} compact />
                 </div>
             </div>
@@ -163,8 +177,8 @@ export function ShopHeader() {
     return (
         <Suspense
             fallback={
-                <header className="sticky top-0 z-40 border-b border-border/60 bg-[var(--header-tint)] backdrop-blur-md">
-                    <div className="mx-auto h-12 max-w-7xl sm:h-14 lg:h-16" />
+                <header className="sticky top-0 z-40 border-b border-border/50 bg-[var(--header-tint)] backdrop-blur-xl">
+                    <div className="mx-auto h-[4.5rem] max-w-6xl px-4 sm:h-[4.75rem] sm:px-6 lg:h-16" />
                 </header>
             }
         >
