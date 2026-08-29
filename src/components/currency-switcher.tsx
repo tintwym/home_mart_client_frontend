@@ -20,7 +20,7 @@ const CURRENCIES = [
     { code: 'VND', labelKey: 'currency.vnd', symbol: '₫' },
 ];
 
-export function CurrencySwitcher() {
+export function CurrencySwitcher({ compact = false }: { compact?: boolean }) {
     const props = useSharedProps();
     const { refresh } = useBootstrap();
     const { t } = useLocalization();
@@ -37,13 +37,19 @@ export function CurrencySwitcher() {
                 <Button
                     variant="ghost"
                     size="sm"
-                    className="flex h-9 shrink-0 gap-1.5 rounded-lg border border-border/40 px-2.5 text-sm font-medium hover:bg-accent"
+                    className={
+                        compact
+                            ? 'flex h-9 shrink-0 gap-1 px-2 text-sm font-medium hover:bg-accent'
+                            : 'flex h-9 shrink-0 gap-1.5 rounded-lg border border-border/40 px-2.5 text-sm font-medium hover:bg-accent'
+                    }
                     aria-label={t('currency.select')}
                     id="currency-switcher-trigger"
                 >
                     <Coins className="size-4 opacity-80" />
                     <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                        {currentCurrency.code} ({currentCurrency.symbol})
+                        {compact
+                            ? currentCurrency.symbol.trim()
+                            : `${currentCurrency.code} (${currentCurrency.symbol})`}
                     </span>
                 </Button>
             </DropdownMenuTrigger>
