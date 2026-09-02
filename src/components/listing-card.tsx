@@ -150,15 +150,9 @@ export function ListingCard({ listing }: ListingCardProps) {
         };
     }, [isQuickViewOpen]);
 
-    // 3 beautiful gallery images: primary plus 2 premium styling/context views
-    const primaryImg =
-        resolveListingImage(listing) ??
-        'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=800&q=80';
-    const galleryImages = [
-        primaryImg,
-        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=600&q=80',
-        'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=80',
-    ];
+    // Quick view uses only the listing's real image(s)
+    const galleryImages = imageSrc ? [imageSrc] : [];
+    const primaryImg = imageSrc ?? '';
     const [activeImage, setActiveImage] = useState(primaryImg);
 
     useEffect(() => {
@@ -227,8 +221,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                             {formatRelativeTime(listing.created_at, t)}
                         </span>
                         {isTrending && (
-                            <span className="inline-flex animate-pulse items-center gap-1 rounded-md bg-chart-1 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-sm">
-                                <span className="size-1.5 animate-ping rounded-full bg-white/80" />
+                            <span className="inline-flex items-center gap-1 rounded-md bg-chart-1 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-sm">
                                 {t('listing.trending')}
                             </span>
                         )}
@@ -317,7 +310,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                 )}
 
                 {/* Micro-interaction Overlay Controls (fade in on hover) */}
-                <div className="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-between opacity-100 transition-opacity duration-300 sm:opacity-0 sm:group-hover/card:opacity-100">
+                <div className="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-between opacity-0 transition-opacity duration-300 group-hover/card:opacity-100 group-focus-within/card:opacity-100">
                     {/* Floating Expand/Quick-View Button */}
                     <button
                         type="button"
@@ -398,15 +391,15 @@ export function ListingCard({ listing }: ListingCardProps) {
                                                     ? 'fill-amber-400 text-amber-400'
                                                     : isHalf
                                                       ? 'fill-amber-400/50 text-amber-400'
-                                                      : 'text-zinc-200 dark:text-zinc-800',
+                                                      : 'text-muted-foreground/40',
                                             )}
                                         />
                                     );
                                 })}
                             </div>
-                            <span className="mt-0.5 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
+                            <span className="mt-0.5 text-[10px] font-bold text-muted-foreground">
                                 {rating.toFixed(1)}{' '}
-                                <span className="font-normal text-zinc-400">
+                                <span className="font-normal text-muted-foreground/70">
                                     ({reviewCount})
                                 </span>
                             </span>
@@ -418,7 +411,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                             href={`/listings/${listing.id}`}
                             className="inline-block"
                         >
-                            <p className="text-base font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50">
+                            <p className="text-base font-extrabold tracking-tight text-foreground">
                                 <CurrencyFormatter
                                     amount={listing.price}
                                     sellerRegion={listing.user?.region}
@@ -429,15 +422,14 @@ export function ListingCard({ listing }: ListingCardProps) {
                 </div>
 
                 {/* Seller & Cart Footer Block */}
-                <div className="mt-auto flex items-center justify-between gap-2 border-t border-zinc-100 pt-2 text-xs dark:border-zinc-800/50">
-                    {/* Seller Minimal Avatar + Name */}
+                <div className="mt-auto flex items-center justify-between gap-2 border-t border-border/60 pt-2 text-xs">
                     <div className="flex min-w-0 items-center gap-1.5">
-                        <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-[9px] font-bold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                        <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-[9px] font-bold text-muted-foreground">
                             {(listing.user?.name ?? 'U')
                                 .slice(0, 1)
                                 .toUpperCase()}
                         </div>
-                        <span className="truncate font-medium text-zinc-500 dark:text-zinc-400">
+                        <span className="truncate font-medium text-muted-foreground">
                             {listing.user?.name ?? t('common.unknown')}
                         </span>
                     </div>
@@ -453,8 +445,8 @@ export function ListingCard({ listing }: ListingCardProps) {
                                 className={cn(
                                     'inline-flex size-7 items-center justify-center rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40',
                                     isFavorite
-                                        ? 'bg-rose-50 text-rose-500 hover:bg-rose-100 dark:bg-rose-950/20 dark:text-rose-400'
-                                        : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700',
+                                        ? 'bg-destructive/10 text-destructive hover:bg-destructive/15'
+                                        : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground',
                                 )}
                                 title={
                                     isFavorite
@@ -481,7 +473,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                                     ) ? (
                                         <Link
                                             href="/cart"
-                                            className="inline-flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                                            className="inline-flex size-7 items-center justify-center rounded-lg bg-muted text-foreground transition-colors hover:bg-muted/80"
                                             title={t('listing.in_cart')}
                                         >
                                             <ShoppingCart className="size-3.5 fill-current" />
@@ -500,6 +492,11 @@ export function ListingCard({ listing }: ListingCardProps) {
                                                         preserveScroll: true,
                                                         onSuccess: () => {
                                                             void refresh();
+                                                            window.dispatchEvent(
+                                                                new CustomEvent(
+                                                                    'open-cart-drawer',
+                                                                ),
+                                                            );
                                                             toast({
                                                                 title: 'Added to Cart',
                                                                 description: `"${listing.title}" has been added to your shopping cart.`,
@@ -534,7 +531,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     onClick={() => setIsQuickViewOpen(false)}
-                                    className="fixed inset-0 bg-zinc-950/60 backdrop-blur-md"
+                                    className="fixed inset-0 bg-foreground/50 backdrop-blur-md"
                                 />
 
                                 {/* Modal Container with sliding elastic effect */}
@@ -547,7 +544,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                                         duration: 0.45,
                                         bounce: 0.15,
                                     }}
-                                    className="relative z-10 grid max-h-[90vh] w-full max-w-4xl grid-cols-1 overflow-y-auto rounded-2xl border border-zinc-200 bg-white shadow-2xl md:max-h-[80vh] md:grid-cols-2 md:overflow-hidden dark:border-zinc-800 dark:bg-zinc-900"
+                                    className="relative z-10 grid max-h-[90vh] w-full max-w-4xl grid-cols-1 overflow-y-auto rounded-2xl border border-border bg-card shadow-2xl md:max-h-[80vh] md:grid-cols-2 md:overflow-hidden"
                                 >
                                     {/* Close button with focus/hover feedback */}
                                     <button
@@ -555,58 +552,68 @@ export function ListingCard({ listing }: ListingCardProps) {
                                         onClick={() =>
                                             setIsQuickViewOpen(false)
                                         }
-                                        className="absolute top-4 right-4 z-20 flex size-9 items-center justify-center rounded-full bg-zinc-900/60 text-white backdrop-blur-md transition-all duration-200 hover:scale-105 hover:bg-zinc-900/80 active:scale-95"
+                                        className="absolute top-4 right-4 z-20 flex size-9 items-center justify-center rounded-full bg-foreground/70 text-background backdrop-blur-md transition-all duration-200 hover:scale-105 hover:bg-foreground/85 active:scale-95"
                                         aria-label="Close modal"
                                     >
                                         <X className="size-4.5" />
                                     </button>
 
                                     {/* Left Column: Premium Carousel View */}
-                                    <div className="relative flex flex-col justify-between overflow-hidden border-b border-zinc-100 bg-zinc-50/50 p-6 md:max-h-full md:border-r md:border-b-0 dark:border-zinc-800/80 dark:bg-zinc-950/10">
+                                    <div className="relative flex flex-col justify-between overflow-hidden border-b border-border bg-muted/30 p-6 md:max-h-full md:border-r md:border-b-0">
                                         <div className="relative flex aspect-square min-h-62.5 flex-1 items-center justify-center overflow-hidden rounded-xl md:aspect-auto md:h-[45vh]">
-                                            <motion.img
-                                                key={activeImage}
-                                                initial={{
-                                                    opacity: 0,
-                                                    scale: 0.98,
-                                                }}
-                                                animate={{
-                                                    opacity: 1,
-                                                    scale: 1,
-                                                }}
-                                                transition={{ duration: 0.25 }}
-                                                src={activeImage}
-                                                alt={listing.title}
-                                                className="absolute inset-0 size-full rounded-lg object-contain p-2"
-                                                onError={() =>
-                                                    setQuickViewImageError(true)
-                                                }
-                                            />
+                                            {activeImage && !quickViewImageError ? (
+                                                <motion.img
+                                                    key={activeImage}
+                                                    initial={{
+                                                        opacity: 0,
+                                                        scale: 0.98,
+                                                    }}
+                                                    animate={{
+                                                        opacity: 1,
+                                                        scale: 1,
+                                                    }}
+                                                    transition={{ duration: 0.25 }}
+                                                    src={activeImage}
+                                                    alt={listing.title}
+                                                    className="absolute inset-0 size-full rounded-lg object-contain p-2"
+                                                    onError={() =>
+                                                        setQuickViewImageError(true)
+                                                    }
+                                                />
+                                            ) : (
+                                                <div className="flex size-full flex-col items-center justify-center gap-2 text-muted-foreground">
+                                                    <Maximize2 className="size-8 stroke-[1.5]" />
+                                                    <span className="text-sm">
+                                                        {t('listing.no_image')}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
 
-                                        {/* Photo Thumbnails for detail exploration */}
-                                        <div className="mt-4 flex justify-center gap-2 overflow-x-auto pb-1">
-                                            {galleryImages.map((img, idx) => (
-                                                <button
-                                                    key={idx}
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setActiveImage(img)
-                                                    }
-                                                    className={`size-14 overflow-hidden rounded-lg border-2 transition-all ${
-                                                        activeImage === img
-                                                            ? 'scale-105 border-primary shadow-sm'
-                                                            : 'border-transparent opacity-70 hover:border-zinc-300 hover:opacity-100 dark:hover:border-zinc-700'
-                                                    }`}
-                                                >
-                                                    <img
-                                                        src={img}
-                                                        className="size-full object-cover"
-                                                        alt=""
-                                                    />
-                                                </button>
-                                            ))}
-                                        </div>
+                                        {galleryImages.length > 1 ? (
+                                            <div className="mt-4 flex justify-center gap-2 overflow-x-auto pb-1">
+                                                {galleryImages.map((img, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setActiveImage(img)
+                                                        }
+                                                        className={`size-14 overflow-hidden rounded-lg border-2 transition-all ${
+                                                            activeImage === img
+                                                                ? 'scale-105 border-primary shadow-sm'
+                                                                : 'border-transparent opacity-70 hover:border-border hover:opacity-100'
+                                                        }`}
+                                                    >
+                                                        <img
+                                                            src={img}
+                                                            className="size-full object-cover"
+                                                            alt=""
+                                                        />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : null}
                                     </div>
 
                                     {/* Right Column: Information & Inline Purchase/Wishlist Engine */}
@@ -614,7 +621,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                                         <div className="space-y-4">
                                             <div className="flex flex-wrap items-center gap-2">
                                                 {listing.category && (
-                                                    <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                                                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
                                                         {listing.category.name}
                                                     </span>
                                                 )}
@@ -632,7 +639,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                                                 </span>
                                             </div>
 
-                                            <h2 className="font-sans text-xl leading-tight font-bold tracking-tight text-zinc-900 md:text-2xl dark:text-zinc-50">
+                                            <h2 className="text-xl leading-tight font-bold tracking-tight text-foreground md:text-2xl">
                                                 {listing.title}
                                             </h2>
 
@@ -645,18 +652,18 @@ export function ListingCard({ listing }: ListingCardProps) {
                                                 />
                                             </div>
 
-                                            <div className="border-t border-zinc-100 py-3 dark:border-zinc-800">
-                                                <h4 className="mb-1.5 text-xs font-bold tracking-wider text-zinc-400 uppercase dark:text-zinc-500">
+                                            <div className="border-t border-border py-3">
+                                                <h4 className="mb-1.5 text-xs font-bold tracking-wider text-muted-foreground uppercase">
                                                     Product Description
                                                 </h4>
-                                                <p className="max-h-37.5 overflow-y-auto pr-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+                                                <p className="max-h-37.5 overflow-y-auto pr-1 text-sm leading-relaxed text-muted-foreground">
                                                     {listing.description ||
                                                         'No description provided for this premium item.'}
                                                 </p>
                                             </div>
 
                                             {/* Seller Info Block */}
-                                            <div className="flex items-center gap-3 rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 dark:border-zinc-800 dark:bg-zinc-800/40">
+                                            <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-3">
                                                 <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
                                                     {listing.user?.name
                                                         ? listing.user.name
@@ -665,7 +672,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                                                         : 'U'}
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="truncate text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                                                    <p className="truncate text-sm font-semibold text-foreground">
                                                         {listing.user?.name ||
                                                             'Verified Seller'}
                                                     </p>
@@ -682,7 +689,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                                             </div>
                                         </div>
 
-                                        <div className="mt-6 space-y-3 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                                        <div className="mt-6 space-y-3 border-t border-border pt-4">
                                             {/* Primary and secondary CTA actions */}
                                             <div className="flex gap-2">
                                                 {/* View Full Product Page */}
@@ -712,7 +719,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                                                     aria-label="Add to favorites"
                                                 >
                                                     <Heart
-                                                        className={`size-5 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-zinc-500 hover:text-red-500'}`}
+                                                        className={`size-5 transition-colors ${isFavorite ? 'fill-destructive text-destructive' : 'text-muted-foreground hover:text-destructive'}`}
                                                     />
                                                 </Button>
                                             </div>
@@ -776,21 +783,13 @@ export function ListingCard({ listing }: ListingCardProps) {
 
 export function ListingCardSkeleton() {
     return (
-        <div className="flex min-w-0 animate-pulse flex-col overflow-hidden rounded-xl border border-border/50 bg-white shadow-none dark:border-border/30 dark:bg-card">
-            {/* Image placeholder */}
-            <div className="aspect-square w-full bg-zinc-200 dark:bg-zinc-800" />
-
-            {/* Details placeholder */}
-            <div className="flex flex-col gap-2 px-3 pt-3 pb-4">
-                {/* Title lines */}
-                <div className="h-4 w-3/4 rounded bg-zinc-200 dark:bg-zinc-800" />
-                <div className="h-3 w-1/2 rounded bg-zinc-200 dark:bg-zinc-800" />
-
-                {/* Price */}
-                <div className="mt-1 h-5 w-1/3 rounded bg-zinc-200 dark:bg-zinc-800" />
-
-                {/* Condition & seller info */}
-                <div className="mt-1 h-3 w-2/3 rounded bg-zinc-200 dark:bg-zinc-800" />
+        <div className="flex min-w-0 animate-pulse flex-col overflow-hidden rounded-2xl border border-border/50 bg-card shadow-xs">
+            <div className="aspect-square w-full bg-muted/60" />
+            <div className="flex flex-col gap-2 bg-muted/15 p-3.5">
+                <div className="h-3 w-1/2 rounded bg-muted" />
+                <div className="h-4 w-3/4 rounded bg-muted" />
+                <div className="mt-1 h-5 w-1/3 rounded bg-muted" />
+                <div className="mt-2 h-3 w-2/3 rounded bg-muted" />
             </div>
         </div>
     );

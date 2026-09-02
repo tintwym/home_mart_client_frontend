@@ -158,6 +158,21 @@
     html {
         /* Prevent iOS overscroll bounce affecting fixed elements */
         overscroll-behavior: none;
+        scroll-behavior: smooth;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
     }
 
     body {
@@ -203,7 +218,16 @@
     }
 
     .shop-pill {
-        @apply rounded-full border border-primary/15 bg-card/90 px-3.5 py-1.5 text-sm shadow-xs transition-all duration-200 hover:border-primary/35 hover:bg-primary/5 hover:shadow-sm;
+        @apply shrink-0 rounded-full border border-primary/15 bg-card/90 px-3.5 py-1.5 text-sm shadow-xs transition-all duration-200 hover:border-primary/35 hover:bg-primary/5 hover:shadow-sm active:scale-[0.98];
+    }
+
+    .scrollbar-none {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
     }
 
     /* Prevent iOS zoom on input focus (font-size >= 16px) */

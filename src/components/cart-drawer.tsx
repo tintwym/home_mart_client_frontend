@@ -110,24 +110,24 @@ export function CartDrawer() {
                             damping: 25,
                             stiffness: 200,
                         }}
-                        className="fixed top-0 right-0 bottom-0 z-50 flex h-full w-full max-w-md flex-col border-l border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
+                        className="fixed top-0 right-0 bottom-0 z-50 flex h-full w-full max-w-md flex-col border-l border-border bg-card shadow-2xl"
                     >
                         {/* Drawer Header */}
-                        <div className="flex items-center justify-between border-b border-zinc-200 p-5 dark:border-zinc-800">
+                        <div className="flex items-center justify-between border-b border-border p-5">
                             <div className="flex items-center gap-2">
                                 <ShoppingCart className="size-5 text-primary" />
-                                <h2 className="text-lg font-bold text-zinc-900 dark:text-white">
+                                <h2 className="text-lg font-bold text-foreground">
                                     {t('cart_drawer.your_order')}
                                 </h2>
                                 {items.length > 0 && (
-                                    <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-bold text-muted-foreground">
                                         {items.length}
                                     </span>
                                 )}
                             </div>
                             <button
                                 onClick={handleClose}
-                                className="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                             >
                                 <X className="size-5" />
                             </button>
@@ -136,7 +136,7 @@ export function CartDrawer() {
                         {/* Drawer Content */}
                         <div className="flex-1 scrollbar-thin overflow-y-auto p-5">
                             {isLoading && items.length === 0 ? (
-                                <div className="flex h-48 flex-col items-center justify-center gap-2 text-zinc-500">
+                                <div className="flex h-48 flex-col items-center justify-center gap-2 text-muted-foreground">
                                     <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                                     <span className="text-xs">
                                         {t('cart_drawer.loading')}
@@ -144,13 +144,13 @@ export function CartDrawer() {
                                 </div>
                             ) : items.length === 0 ? (
                                 <div className="flex h-full flex-col items-center justify-center text-center">
-                                    <div className="mb-4 rounded-full bg-zinc-50 p-4 dark:bg-zinc-900">
-                                        <ShoppingCart className="size-10 text-zinc-400" />
+                                    <div className="mb-4 rounded-full bg-muted/60 p-4">
+                                        <ShoppingCart className="size-10 text-muted-foreground" />
                                     </div>
-                                    <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-200">
+                                    <h3 className="text-base font-bold text-foreground">
                                         {t('cart_drawer.empty_title')}
                                     </h3>
-                                    <p className="mt-1 max-w-xs text-sm text-zinc-500">
+                                    <p className="mt-1 max-w-xs text-sm text-muted-foreground">
                                         {t('cart_drawer.empty_description')}
                                     </p>
                                     <Button
@@ -173,12 +173,12 @@ export function CartDrawer() {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, x: -10 }}
-                                                className="flex gap-4 rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 dark:border-zinc-800/60 dark:bg-zinc-900/20"
+                                                className="flex gap-4 rounded-xl border border-border/80 bg-muted/20 p-3"
                                             >
                                                 <Link
                                                     href={`/listings/${item.listing.id}`}
                                                     onClick={handleClose}
-                                                    className="size-16 shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800"
+                                                    className="size-16 shrink-0 overflow-hidden rounded-lg bg-muted"
                                                 >
                                                     {imgUrl ? (
                                                         <img
@@ -196,7 +196,7 @@ export function CartDrawer() {
                                                 <div className="flex min-w-0 flex-1 flex-col justify-between">
                                                     <div>
                                                         <div className="flex items-start justify-between gap-1">
-                                                            <h4 className="truncate text-xs font-bold text-zinc-900 hover:underline dark:text-zinc-100">
+                                                            <h4 className="truncate text-xs font-bold text-foreground hover:underline">
                                                                 <Link
                                                                     href={`/listings/${item.listing.id}`}
                                                                     onClick={
@@ -218,7 +218,7 @@ export function CartDrawer() {
                                                                             .id,
                                                                     )
                                                                 }
-                                                                className="p-0.5 text-zinc-400 hover:text-red-500 dark:hover:text-red-400"
+                                                                className="p-0.5 text-muted-foreground transition-colors hover:text-destructive"
                                                                 title={t(
                                                                     'cart.remove',
                                                                 )}
@@ -226,7 +226,7 @@ export function CartDrawer() {
                                                                 <Trash2 className="size-3.5" />
                                                             </button>
                                                         </div>
-                                                        <p className="text-[10px] text-zinc-500">
+                                                        <p className="text-[10px] text-muted-foreground">
                                                             {CONDITION_KEYS[
                                                                 item.listing
                                                                     .condition ??
@@ -246,7 +246,7 @@ export function CartDrawer() {
                                                     </div>
 
                                                     <div className="mt-1 flex items-center justify-between text-xs">
-                                                        <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                                                        <span className="font-semibold text-foreground">
                                                             {formatPrice(
                                                                 item.listing
                                                                     .price,
@@ -255,8 +255,8 @@ export function CartDrawer() {
                                                                     ?.region,
                                                             )}
                                                         </span>
-                                                        <span className="flex items-center gap-1 text-[10px] font-medium text-zinc-500">
-                                                            <Check className="size-3 text-green-500" />
+                                                        <span className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
+                                                            <Check className="size-3 text-primary" />
                                                             {t('cart.in_stock')}
                                                         </span>
                                                     </div>
@@ -270,15 +270,15 @@ export function CartDrawer() {
 
                         {/* Drawer Footer Summary */}
                         {items.length > 0 && (
-                            <div className="space-y-4 border-t border-zinc-200 bg-zinc-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-900/10">
+                            <div className="space-y-4 border-t border-border bg-muted/20 p-5">
                                 <div className="space-y-1.5 text-xs">
-                                    <div className="flex justify-between text-zinc-500">
+                                    <div className="flex justify-between text-muted-foreground">
                                         <span>{t('cart.subtotal')}</span>
-                                        <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                                        <span className="font-medium text-foreground">
                                             {formatAmount(orderTotal)}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between border-t border-zinc-200 pt-2.5 text-sm font-bold text-zinc-900 dark:border-zinc-800 dark:text-white">
+                                    <div className="flex justify-between border-t border-border pt-2.5 text-sm font-bold text-foreground">
                                         <span>{t('cart.order_total')}</span>
                                         <span>{formatAmount(orderTotal)}</span>
                                     </div>
@@ -287,7 +287,7 @@ export function CartDrawer() {
                                 <Button
                                     onClick={handleCheckout}
                                     disabled={checkoutBusy}
-                                    className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-zinc-950 py-5.5 text-sm font-bold text-white shadow-md hover:bg-zinc-900 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
+                                    className="flex w-full items-center justify-center gap-1.5 rounded-xl py-5.5 text-sm font-bold shadow-md"
                                 >
                                     {checkoutBusy
                                         ? t('cart_drawer.loading')

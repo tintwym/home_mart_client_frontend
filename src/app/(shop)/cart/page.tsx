@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { startCheckout } from '@/lib/checkout';
-import { apiFetch, getCart } from '@/lib/api';
+import { apiFetch, getCart, resolveListingImage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { PageError, PageHeader, PageLoading } from '@/components/page-kit';
+import { EmptyState } from '@/components/empty-state';
 import { Button } from '@/components/ui/button';
 import { CurrencyFormatter } from '@/components/currency-formatter';
+import { ShoppingBag, Trash2 } from 'lucide-react';
 
 type CartRow = {
     id: string;
@@ -18,6 +20,7 @@ type CartRow = {
         title: string;
         price?: number;
         image_url?: string | null;
+        image_path?: string | null;
     };
 };
 
@@ -27,6 +30,7 @@ export default function CartPage() {
     const [items, setItems] = useState<CartRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [checkingOut, setCheckingOut] = useState(false);
 
     const load = async () => {
         setLoading(true);
@@ -49,75 +53,136 @@ export default function CartPage() {
         if (user) void load();
     }, [authLoading, user, router]);
 
+    const total = useMemo(
+        () =>
+            items.reduce(
+                (sum, item) => sum + (item.listing?.price ?? 0),
+                0,
+            ),
+        [items],
+    );
+
     const remove = async (listingId: string) => {
         await apiFetch(`/api/listings/${listingId}/cart`, { method: 'DELETE' });
         await load();
     };
 
     return (
-        <div>
-            <PageHeader title="Cart" description="Items ready for checkout" />
+        <div className="mx-auto max-w-2xl">
+            <PageHeader
+                title="Cart"
+                description={
+                    items.length > 0
+                        ? `${items.length} item${items.length === 1 ? '' : 's'} ready for checkout`
+                        : 'Review items before you checkout'
+                }
+            />
+
             {loading || authLoading ? (
-                <PageLoading />
+                <PageLoading label="Loading your cart…" />
             ) : error ? (
                 <PageError message={error} onRetry={() => void load()} />
             ) : items.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                    Your cart is empty.{' '}
-                    <Link href="/" className="underline">
-                        Browse listings
-                    </Link>
-                </p>
+                <EmptyState
+                    type="generic"
+                    title="Your cart is empty"
+                    description="Browse listings and tap Add to cart when you find something you like."
+                    actionLabel="Browse listings"
+                    actionHref="/"
+                />
             ) : (
-                <div className="space-y-4">
-                    <ul className="divide-y divide-border rounded-xl border border-border bg-card">
-                        {items.map((item) => {
+                <div className="space-y-6">
+                    <ul className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs">
+                        {items.map((item, index) => {
                             const listing = item.listing;
                             const lid = listing?.id || item.listing_id || '';
+                            const imageSrc = listing
+                                ? resolveListingImage(listing)
+                                : null;
                             return (
                                 <li
                                     key={item.id}
-                                    className="flex items-center justify-between gap-4 p-4"
+                                    className={
+                                        index > 0
+                                            ? 'border-t border-border/60'
+                                            : ''
+                                    }
                                 >
-                                    <div>
+                                    <div className="flex items-center gap-4 p-4">
                                         <Link
                                             href={`/listings/${lid}`}
-                                            className="font-medium hover:underline"
+                                            className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-muted/50"
                                         >
-                                            {listing?.title || 'Listing'}
-                                        </Link>
-                                        {listing?.price != null ? (
-                                            <p className="text-sm text-muted-foreground">
-                                                <CurrencyFormatter
-                                                    amount={listing.price}
+                                            {imageSrc ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img
+                                                    src={imageSrc}
+                                                    alt=""
+                                                    className="size-full object-cover"
                                                 />
-                                            </p>
-                                        ) : null}
+                                            ) : (
+                                                <span className="flex size-full items-center justify-center text-muted-foreground">
+                                                    <ShoppingBag className="size-5" />
+                                                </span>
+                                            )}
+                                        </Link>
+                                        <div className="min-w-0 flex-1">
+                                            <Link
+                                                href={`/listings/${lid}`}
+                                                className="line-clamp-2 font-medium hover:text-primary"
+                                            >
+                                                {listing?.title || 'Listing'}
+                                            </Link>
+                                            {listing?.price != null ? (
+                                                <p className="mt-1 text-sm font-semibold text-primary">
+                                                    <CurrencyFormatter
+                                                        amount={listing.price}
+                                                    />
+                                                </p>
+                                            ) : null}
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="shrink-0 text-muted-foreground hover:text-destructive"
+                                            aria-label="Remove from cart"
+                                            onClick={() => void remove(lid)}
+                                        >
+                                            <Trash2 className="size-4" />
+                                        </Button>
                                     </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => void remove(lid)}
-                                    >
-                                        Remove
-                                    </Button>
                                 </li>
                             );
                         })}
                     </ul>
-                    <div className="flex flex-wrap gap-2">
+
+                    <div className="rounded-2xl border border-primary/15 bg-primary/5 p-5">
+                        <div className="flex items-center justify-between gap-4">
+                            <span className="text-sm font-medium text-muted-foreground">
+                                Estimated total
+                            </span>
+                            <span className="text-xl font-semibold">
+                                <CurrencyFormatter amount={total} />
+                            </span>
+                        </div>
                         <Button
+                            className="mt-4 w-full shadow-sm"
+                            size="lg"
+                            disabled={checkingOut}
                             onClick={() => {
-                                void startCheckout(router).catch((e) => {
-                                    setError(
-                                        e instanceof Error
-                                            ? e.message
-                                            : 'Checkout failed',
-                                    );
-                                });
+                                setCheckingOut(true);
+                                void startCheckout(router)
+                                    .catch((e) => {
+                                        setError(
+                                            e instanceof Error
+                                                ? e.message
+                                                : 'Checkout failed',
+                                        );
+                                    })
+                                    .finally(() => setCheckingOut(false));
                             }}
                         >
-                            Checkout
+                            {checkingOut ? 'Starting checkout…' : 'Proceed to checkout'}
                         </Button>
                     </div>
                 </div>

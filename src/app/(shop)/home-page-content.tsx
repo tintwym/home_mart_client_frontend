@@ -14,6 +14,7 @@ import {
 import { EmptyState } from '@/components/empty-state';
 import { Button } from '@/components/ui/button';
 import { LayoutGrid, Plus, Sparkles } from 'lucide-react';
+import { motion } from 'motion/react';
 
 export function HomePageContent() {
     const shared = useSharedProps();
@@ -71,14 +72,14 @@ export function HomePageContent() {
                             Browse local listings, message sellers, and checkout
                             securely — all in one place.
                         </p>
-                        <div className="mt-6 hidden flex-wrap gap-3 sm:flex">
-                            <Button asChild className="shadow-sm">
+                        <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-3">
+                            <Button asChild className="w-full shadow-sm sm:w-auto">
                                 <Link href="/listings/create">
                                     <Plus className="mr-1.5 h-4 w-4" />
                                     Sell something
                                 </Link>
                             </Button>
-                            <Button variant="outline" asChild>
+                            <Button variant="outline" asChild className="w-full sm:w-auto">
                                 <Link href="/favorites">View saved items</Link>
                             </Button>
                         </div>
@@ -97,7 +98,7 @@ export function HomePageContent() {
                             Browse categories
                         </h2>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
                         {categories.slice(0, 12).map((cat) => (
                             <Link
                                 key={cat.id}
@@ -155,8 +156,19 @@ export function HomePageContent() {
                     />
                 ) : (
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4">
-                        {listings.map((listing) => (
-                            <ListingCard key={listing.id} listing={listing} />
+                        {listings.map((listing, index) => (
+                            <motion.div
+                                key={listing.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{
+                                    duration: 0.35,
+                                    delay: Math.min(index * 0.04, 0.32),
+                                    ease: [0.16, 1, 0.3, 1],
+                                }}
+                            >
+                                <ListingCard listing={listing} />
+                            </motion.div>
                         ))}
                     </div>
                 )}

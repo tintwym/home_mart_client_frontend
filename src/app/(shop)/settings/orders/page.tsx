@@ -4,8 +4,16 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch, getOrders } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { BackLink, PageError, PageHeader, PageLoading } from '@/components/page-kit';
+import {
+    BackLink,
+    PageError,
+    PageHeader,
+    PageLoading,
+} from '@/components/page-kit';
+import { EmptyState } from '@/components/empty-state';
 import { Button } from '@/components/ui/button';
+import { CurrencyFormatter } from '@/components/currency-formatter';
+import { cn } from '@/lib/utils';
 
 type Order = {
     id: string;
@@ -14,6 +22,21 @@ type Order = {
     created_at?: string;
     listing?: { title?: string };
 };
+
+function statusTone(status?: string) {
+    switch (status) {
+        case 'paid':
+        case 'completed':
+            return 'bg-primary/10 text-primary';
+        case 'arranged':
+        case 'pending':
+            return 'bg-secondary/30 text-secondary-foreground';
+        case 'cancelled':
+            return 'bg-muted text-muted-foreground';
+        default:
+            return 'bg-muted/60 text-muted-foreground';
+    }
+}
 
 export default function OrdersSettingsPage() {
     const { user, loading: authLoading } = useAuth();
@@ -51,32 +74,60 @@ export default function OrdersSettingsPage() {
     return (
         <div className="mx-auto max-w-lg">
             <BackLink href="/settings" label="Settings" />
-            <PageHeader title="Orders" />
+            <PageHeader
+                as="h1"
+                title="Orders"
+                description="Track purchases and completed sales"
+            />
             {loading || authLoading ? (
-                <PageLoading />
+                <PageLoading label="Loading orders…" />
             ) : error ? (
                 <PageError message={error} onRetry={() => void load()} />
             ) : orders.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No orders yet.</p>
+                <EmptyState
+                    type="generic"
+                    title="No orders yet"
+                    description="When you buy or sell something, your orders will show up here."
+                    actionLabel="Browse listings"
+                    actionHref="/"
+                />
             ) : (
                 <ul className="space-y-3">
                     {orders.map((o) => (
                         <li
                             key={o.id}
-                            className="rounded-xl border border-border bg-card p-4"
+                            className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs"
                         >
-                            <div className="font-medium">
-                                {o.listing?.title || `Order ${o.id}`}
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <div className="font-medium">
+                                        {o.listing?.title || `Order ${o.id.slice(0, 8)}…`}
+                                    </div>
+                                    {o.total != null ? (
+                                        <p className="mt-1 text-sm font-semibold text-primary">
+                                            <CurrencyFormatter amount={o.total} />
+                                        </p>
+                                    ) : null}
+                                    {o.created_at ? (
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                            {new Date(o.created_at).toLocaleString()}
+                                        </p>
+                                    ) : null}
+                                </div>
+                                <span
+                                    className={cn(
+                                        'shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize',
+                                        statusTone(o.status),
+                                    )}
+                                >
+                                    {o.status || 'unknown'}
+                                </span>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                                {o.status || 'unknown'}
-                                {o.created_at ? ` · ${o.created_at}` : ''}
-                            </p>
                             {o.status &&
                             !['completed', 'cancelled'].includes(o.status) ? (
                                 <Button
                                     size="sm"
-                                    className="mt-2"
+                                    className="mt-3"
                                     variant="outline"
                                     onClick={async () => {
                                         try {

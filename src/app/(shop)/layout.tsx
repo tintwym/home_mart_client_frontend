@@ -2,6 +2,7 @@
 
 import { MobileBottomTabBar } from '@/components/mobile-bottom-tab-bar';
 import { ShopHeader } from '@/components/shop-header';
+import { CartDrawer } from '@/components/cart-drawer';
 import { AuthModalLayout } from '@/components/auth-modal-layout';
 import { LocalizationProvider } from '@/components/localization-provider';
 import { isAuthOverlayPath } from '@/lib/auth-overlay-paths';
@@ -24,7 +25,7 @@ function BootstrapErrorBanner() {
 
 function ShopMobileFooter() {
     return (
-        <div className="border-t border-border/50 px-4 py-4 text-center text-xs text-muted-foreground lg:hidden">
+        <div className="hidden border-t border-border/50 px-4 py-4 text-center text-xs text-muted-foreground md:block lg:hidden">
             <Link
                 href="/download"
                 className="font-medium transition-colors hover:text-primary"
@@ -63,11 +64,12 @@ export default function ShopLayout({
             <div className="flex min-h-dvh flex-col">
                 <BootstrapErrorBanner />
                 <ShopHeader />
-                <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-6 lg:pb-6">
+                <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 pb-[calc(5.25rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-6 lg:pb-6">
                     {mainContent}
                 </main>
                 <ShopMobileFooter />
                 <MobileBottomTabBar />
+                <CartDrawer />
                 {authOverlayOpen && overlayContent ? (
                     <AuthModalLayout key={pathname}>
                         {overlayContent}

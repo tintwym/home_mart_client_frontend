@@ -1,5 +1,5 @@
 import { Link } from '@/lib/app-client';
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, ShoppingBag, Heart, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -20,63 +20,68 @@ export function EmptyState({
     actionHref = '/',
     onActionClick,
 }: Props) {
-    // Elegant background and icon representation based on type
+    const reduceMotion = useReducedMotion();
+
     const getVisual = () => {
         switch (type) {
             case 'favorites':
                 return (
-                    <div className="relative flex size-24 items-center justify-center rounded-2xl bg-red-50/50 dark:bg-red-950/10">
-                        {/* Soft pulsing heart rings */}
-                        <motion.div
-                            animate={{
-                                scale: [1, 1.15, 1],
-                                opacity: [0.15, 0.3, 0.15],
-                            }}
-                            transition={{
-                                repeat: Infinity,
-                                duration: 3,
-                                ease: 'easeInOut',
-                            }}
-                            className="absolute inset-0 rounded-2xl border-2 border-red-500/20"
-                        />
-                        <Heart className="size-10 fill-red-500/10 text-red-500" />
+                    <div className="relative flex size-24 items-center justify-center rounded-2xl bg-destructive/5 dark:bg-destructive/10">
+                        {!reduceMotion ? (
+                            <motion.div
+                                animate={{
+                                    scale: [1, 1.08, 1],
+                                    opacity: [0.12, 0.22, 0.12],
+                                }}
+                                transition={{
+                                    repeat: Infinity,
+                                    duration: 3,
+                                    ease: 'easeInOut',
+                                }}
+                                className="absolute inset-0 rounded-2xl border-2 border-destructive/15"
+                            />
+                        ) : null}
+                        <Heart className="size-10 fill-destructive/10 text-destructive" />
                     </div>
                 );
             case 'listings':
                 return (
-                    <div className="relative flex size-24 items-center justify-center rounded-2xl bg-amber-50/50 dark:bg-amber-950/10">
-                        {/* Soft breathing ring */}
-                        <motion.div
-                            animate={{
-                                scale: [1, 1.12, 1],
-                                opacity: [0.15, 0.25, 0.15],
-                            }}
-                            transition={{
-                                repeat: Infinity,
-                                duration: 3.5,
-                                ease: 'easeInOut',
-                            }}
-                            className="absolute inset-0 rounded-2xl border-2 border-amber-500/20"
-                        />
-                        <LayoutGrid className="size-10 text-amber-500" />
+                    <div className="relative flex size-24 items-center justify-center rounded-2xl bg-accent/30">
+                        {!reduceMotion ? (
+                            <motion.div
+                                animate={{
+                                    scale: [1, 1.06, 1],
+                                    opacity: [0.12, 0.2, 0.12],
+                                }}
+                                transition={{
+                                    repeat: Infinity,
+                                    duration: 3.5,
+                                    ease: 'easeInOut',
+                                }}
+                                className="absolute inset-0 rounded-2xl border-2 border-accent-foreground/10"
+                            />
+                        ) : null}
+                        <LayoutGrid className="size-10 text-accent-foreground" />
                     </div>
                 );
             default:
                 return (
-                    <div className="relative flex size-24 items-center justify-center rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/40">
-                        <motion.div
-                            animate={{
-                                scale: [1, 1.1, 1],
-                                opacity: [0.1, 0.2, 0.1],
-                            }}
-                            transition={{
-                                repeat: Infinity,
-                                duration: 4,
-                                ease: 'easeInOut',
-                            }}
-                            className="absolute inset-0 rounded-2xl border-2 border-zinc-500/10"
-                        />
-                        <ShoppingBag className="size-10 text-zinc-400" />
+                    <div className="relative flex size-24 items-center justify-center rounded-2xl bg-muted/50">
+                        {!reduceMotion ? (
+                            <motion.div
+                                animate={{
+                                    scale: [1, 1.05, 1],
+                                    opacity: [0.08, 0.16, 0.08],
+                                }}
+                                transition={{
+                                    repeat: Infinity,
+                                    duration: 4,
+                                    ease: 'easeInOut',
+                                }}
+                                className="absolute inset-0 rounded-2xl border-2 border-border"
+                            />
+                        ) : null}
+                        <ShoppingBag className="size-10 text-muted-foreground" />
                     </div>
                 );
         }
@@ -84,62 +89,52 @@ export function EmptyState({
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200/80 bg-zinc-50/30 px-6 py-16 text-center dark:border-zinc-800/60 dark:bg-zinc-950/20"
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-card/40 px-6 py-16 text-center"
         >
-            {/* Elegant Illustration / Floating Icon Box */}
             <div className="mb-6 flex justify-center">
                 <motion.div
-                    animate={{ y: [0, -6, 0] }}
+                    animate={
+                        reduceMotion ? undefined : { y: [0, -4, 0] }
+                    }
                     transition={{
                         repeat: Infinity,
                         duration: 4,
                         ease: 'easeInOut',
                     }}
-                    whileHover={{ scale: 1.05 }}
                 >
                     {getVisual()}
                 </motion.div>
             </div>
 
-            {/* Typography */}
-            <h3 className="font-sans text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <h3 className="text-lg font-semibold tracking-tight text-foreground">
                 {title}
             </h3>
-            <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
                 {description}
             </p>
 
-            {/* Custom Styled Browse Items Button */}
-            <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="mt-6"
-            >
+            <div className="mt-6">
                 {onActionClick ? (
                     <Button
                         size="lg"
                         onClick={onActionClick}
-                        className="group rounded-xl font-medium shadow-sm transition-all duration-200"
+                        className="group rounded-xl shadow-sm"
                     >
                         <span>{actionLabel}</span>
-                        <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
+                        <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-0.5" />
                     </Button>
                 ) : (
-                    <Button
-                        asChild
-                        size="lg"
-                        className="group rounded-xl font-medium shadow-sm transition-all duration-200"
-                    >
+                    <Button asChild size="lg" className="group rounded-xl shadow-sm">
                         <Link href={actionHref}>
                             <span>{actionLabel}</span>
-                            <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
+                            <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-0.5" />
                         </Link>
                     </Button>
                 )}
-            </motion.div>
+            </div>
         </motion.div>
     );
 }

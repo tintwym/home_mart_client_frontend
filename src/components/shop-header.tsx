@@ -178,7 +178,7 @@ export function ShopHeader() {
         <Suspense
             fallback={
                 <header className="sticky top-0 z-40 border-b border-border/50 bg-[var(--header-tint)] backdrop-blur-xl">
-                    <div className="mx-auto h-[4.5rem] max-w-6xl px-4 sm:h-[4.75rem] sm:px-6 lg:h-16" />
+                    <div className="mx-auto min-h-[7.25rem] max-w-6xl px-4 sm:px-6 lg:min-h-16" />
                 </header>
             }
         >

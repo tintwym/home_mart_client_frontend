@@ -139,11 +139,7 @@ export function MobileBottomTabBar() {
                         />
 
                         {/* Spacer for center FAB */}
-                        <div aria-hidden className="flex flex-col items-center">
-                            <span className="text-[10px] font-semibold text-primary/90">
-                                Sell
-                            </span>
-                        </div>
+                        <div aria-hidden className="pointer-events-none" />
 
                         <TabLink
                             {...tabs[2]}
@@ -177,21 +173,12 @@ function SellFab({
                 whileHover={reduceMotion ? undefined : { scale: 1.04 }}
                 transition={softSpring}
             >
-                {/* Glow ring */}
-                {!reduceMotion ? (
+                {!reduceMotion && active ? (
                     <motion.span
                         aria-hidden
-                        className="absolute inset-0 rounded-full bg-primary/25 blur-md"
-                        animate={
-                            active
-                                ? { scale: [1, 1.18, 1], opacity: [0.45, 0.7, 0.45] }
-                                : { scale: 1, opacity: 0.35 }
-                        }
-                        transition={
-                            active
-                                ? { duration: 2.4, repeat: Infinity, ease: 'easeInOut' }
-                                : { duration: 0.3 }
-                        }
+                        className="absolute inset-0 rounded-full bg-primary/20 blur-md"
+                        animate={{ scale: [1, 1.1, 1], opacity: [0.35, 0.5, 0.35] }}
+                        transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
                     />
                 ) : null}
 
@@ -207,14 +194,10 @@ function SellFab({
                         reduceMotion
                             ? undefined
                             : active
-                              ? { rotate: [0, -8, 8, 0] }
-                              : { rotate: 0 }
+                              ? { scale: 1.02 }
+                              : { scale: 1 }
                     }
-                    transition={
-                        active
-                            ? { duration: 0.55, ease: 'easeInOut' }
-                            : softSpring
-                    }
+                    transition={softSpring}
                 >
                     <motion.span
                         animate={

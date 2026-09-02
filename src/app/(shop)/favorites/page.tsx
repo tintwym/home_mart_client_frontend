@@ -6,6 +6,7 @@ import { getFavorites } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { ListingCard, type ListingCardListing } from '@/components/listing-card';
 import { PageError, PageHeader, PageLoading } from '@/components/page-kit';
+import { EmptyState } from '@/components/empty-state';
 
 export default function FavoritesPage() {
     const { user, loading: authLoading } = useAuth();
@@ -50,7 +51,13 @@ export default function FavoritesPage() {
             ) : error ? (
                 <PageError message={error} onRetry={() => void load()} />
             ) : listings.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No favorites yet.</p>
+                <EmptyState
+                    type="favorites"
+                    title="No saved items yet"
+                    description="Tap the heart on any listing to save it here for later."
+                    actionLabel="Browse listings"
+                    actionHref="/"
+                />
             ) : (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                     {listings.map((l) => (

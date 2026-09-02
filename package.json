@@ -13,7 +13,9 @@
         "lint:check": "eslint . --max-warnings 0",
         "types": "tsc --noEmit",
         "format": "prettier --write src/ --ignore-path .prettierignore",
-        "format:check": "prettier --check src/ --ignore-path .prettierignore"
+        "format:check": "prettier --check src/ --ignore-path .prettierignore",
+        "test": "vitest run",
+        "test:watch": "vitest"
     },
     "dependencies": {
         "@headlessui/react": "^2.2.0",
@@ -61,6 +63,7 @@
         "prettier": "^3.4.2",
         "prettier-plugin-tailwindcss": "^0.6.11",
         "typescript": "^5.7.2",
-        "typescript-eslint": "^8.23.0"
+        "typescript-eslint": "^8.23.0",
+        "vitest": "^3.2.4"
     }
 }
