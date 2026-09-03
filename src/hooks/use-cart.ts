@@ -7,6 +7,7 @@ import { useSharedProps } from '@/lib/bootstrap';
 
 export type CartItem = {
     id: string;
+    listing_id?: string;
     listing: {
         id: string;
         title: string;
@@ -14,8 +15,8 @@ export type CartItem = {
         image_url?: string | null;
         price: number;
         condition?: string;
-        user: { id: string; name: string; region?: string | null };
-    };
+        user?: { id: string; name: string; region?: string | null };
+    } | null;
 };
 
 const getInitialLocalCart = (): CartItem[] => {
@@ -45,6 +46,14 @@ export function useCart() {
         }
     }, []);
 
+    const bumpBootstrap = useCallback(() => {
+        (
+            globalThis as unknown as {
+                __hmBootstrapRefresh?: () => void;
+            }
+        ).__hmBootstrapRefresh?.();
+    }, []);
+
     const fetchItems = useCallback(async () => {
         if (!user || !getToken()) return;
         setIsLoading(true);
@@ -53,12 +62,13 @@ export function useCart() {
             const next = data.items ?? [];
             setItems(next);
             saveLocalCart(next);
+            bumpBootstrap();
         } catch {
             /* ignore */
         } finally {
             setIsLoading(false);
         }
-    }, [user, saveLocalCart]);
+    }, [user, saveLocalCart, bumpBootstrap]);
 
     useEffect(() => {
         if (!user) {
@@ -72,7 +82,11 @@ export function useCart() {
         (async () => {
             const guest = getInitialLocalCart();
             const guestIds = [
-                ...new Set(guest.map((g) => g.listing?.id).filter(Boolean)),
+                ...new Set(
+                    guest
+                        .map((g) => g.listing?.id || g.listing_id)
+                        .filter(Boolean),
+                ),
             ] as string[];
 
             for (const listingId of guestIds) {
@@ -95,10 +109,10 @@ export function useCart() {
     }, [user, fetchItems]);
 
     const addItem = useCallback(
-        async (listing: CartItem['listing']) => {
+        async (listing: NonNullable<CartItem['listing']>) => {
             if (!user) {
                 const next = [
-                    ...items.filter((i) => i.listing.id !== listing.id),
+                    ...items.filter((i) => i.listing?.id !== listing.id),
                     {
                         id: `local-${listing.id}`,
                         listing,
@@ -119,8 +133,11 @@ export function useCart() {
 
     const removeItem = useCallback(
         async (listingId: string) => {
+            if (!listingId) return;
             if (!user) {
-                const next = items.filter((i) => i.listing.id !== listingId);
+                const next = items.filter(
+                    (i) => (i.listing?.id || i.listing_id) !== listingId,
+                );
                 setItems(next);
                 saveLocalCart(next);
                 return;
@@ -146,6 +163,11 @@ export function useCart() {
             }).then(() => fetchItems()),
         removeItem,
         removeFromCart: removeItem,
-        count: items.length,
+        count:
+            user != null
+                ? (shared.auth?.cartListingIds?.length ??
+                  shared.auth?.cartCount ??
+                  items.length)
+                : items.length,
     };
 }

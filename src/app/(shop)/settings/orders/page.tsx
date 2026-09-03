@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch, getOrders } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { loginHref } from '@/lib/auth-redirect';
 import {
     BackLink,
     PageError,
@@ -15,13 +16,33 @@ import { Button } from '@/components/ui/button';
 import { CurrencyFormatter } from '@/components/currency-formatter';
 import { cn } from '@/lib/utils';
 
+type OrderItem = {
+    listing?: { title?: string } | null;
+};
+
 type Order = {
     id: string;
     status?: string;
     total?: number;
     created_at?: string;
     listing?: { title?: string };
+    items?: OrderItem[];
 };
+
+function orderTitle(o: Order): string {
+    const fromItems = o.items
+        ?.map((i) => i.listing?.title)
+        .filter(Boolean) as string[] | undefined;
+    if (fromItems && fromItems.length > 0) {
+        if (fromItems.length === 1) return fromItems[0]!;
+        return `${fromItems[0]} +${fromItems.length - 1} more`;
+    }
+    return o.listing?.title || `Order ${o.id.slice(0, 8)}…`;
+}
+
+function canMarkComplete(status?: string) {
+    return status === 'paid' || status === 'arranged';
+}
 
 function statusTone(status?: string) {
     switch (status) {
@@ -65,7 +86,7 @@ export default function OrdersSettingsPage() {
 
     useEffect(() => {
         if (!authLoading && !user) {
-            router.replace('/login');
+            router.replace(loginHref('/settings/orders'));
             return;
         }
         if (user) void load();
@@ -101,7 +122,7 @@ export default function OrdersSettingsPage() {
                             <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
                                     <div className="font-medium">
-                                        {o.listing?.title || `Order ${o.id.slice(0, 8)}…`}
+                                        {orderTitle(o)}
                                     </div>
                                     {o.total != null ? (
                                         <p className="mt-1 text-sm font-semibold text-primary">
@@ -123,8 +144,7 @@ export default function OrdersSettingsPage() {
                                     {o.status || 'unknown'}
                                 </span>
                             </div>
-                            {o.status &&
-                            !['completed', 'cancelled'].includes(o.status) ? (
+                            {canMarkComplete(o.status) ? (
                                 <Button
                                     size="sm"
                                     className="mt-3"

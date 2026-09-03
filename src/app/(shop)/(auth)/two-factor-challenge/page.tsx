@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { confirmTwoFactor } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { AuthCard } from '@/components/page-kit';
+import { resolveAuthNext } from '@/lib/auth-redirect';
+import { AuthCard, PageLoading } from '@/components/page-kit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,9 +14,11 @@ import {
     readTwoFactorCredentials,
 } from '@/lib/two-factor-session';
 
-export default function TwoFactorChallengePage() {
+function TwoFactorChallengeInner() {
     const { setSession } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const afterLogin = resolveAuthNext(searchParams.get('next'));
     const [credentials, setCredentials] = useState<{
         email: string;
         password: string;
@@ -66,7 +69,7 @@ export default function TwoFactorChallengePage() {
                         );
                         clearTwoFactorCredentials();
                         setSession(res.user, res.token);
-                        router.push('/');
+                        router.push(afterLogin);
                     } catch (err) {
                         setError(
                             err instanceof Error
@@ -114,5 +117,13 @@ export default function TwoFactorChallengePage() {
                 </button>
             </form>
         </AuthCard>
+    );
+}
+
+export default function TwoFactorChallengePage() {
+    return (
+        <Suspense fallback={<PageLoading />}>
+            <TwoFactorChallengeInner />
+        </Suspense>
     );
 }

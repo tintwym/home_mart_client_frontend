@@ -4,14 +4,16 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingCart, X, Trash2, Check, ArrowRight } from 'lucide-react';
-import { Link } from '@/lib/app-client'
+import { Link } from '@/lib/app-client';
+import { resolveListingImage } from '@/lib/api';
 import { startCheckout } from '@/lib/checkout';
 import { useSharedProps } from '@/lib/bootstrap';
 import { useCurrency } from '@/hooks/use-currency';
 import { useCart } from '@/hooks/use-cart';
 import { useTranslations } from '@/hooks/use-translations';
+import { ShopTrustStrip } from '@/components/shop-trust-strip';
 import { Button } from '@/components/ui/button';
-import type { SharedData } from '@/types';
+import { useToast } from '@/components/ui/toast';
 
 const CONDITION_KEYS: Record<string, string> = {
     new: 'cart.condition_new',
@@ -25,6 +27,7 @@ export function CartDrawer() {
     const { auth } = useSharedProps();
     const { formatPrice, formatAmount, toDisplayAmount } = useCurrency();
     const { t } = useTranslations();
+    const { toast } = useToast();
     const [isOpen, setIsOpen] = useState(false);
     const { items, isLoading, fetchItems, removeFromCart } = useCart();
     const prevCartCountRef = useRef(auth?.cartListingIds?.length ?? 0);
@@ -74,18 +77,39 @@ export function CartDrawer() {
         setCheckoutBusy(true);
         void startCheckout(router)
             .then(() => handleClose())
-            .catch(() => {
-                window.alert('Checkout failed. Please try again from your cart.');
+            .catch((e) => {
+                toast({
+                    title: 'Checkout failed',
+                    description:
+                        e instanceof Error
+                            ? e.message
+                            : 'Please try again from your cart.',
+                    variant: 'destructive',
+                });
             })
             .finally(() => setCheckoutBusy(false));
     };
 
-    const orderTotal = items.reduce(
-        (sum, item) =>
+    const handleRemove = async (listingId: string) => {
+        try {
+            await removeFromCart(listingId);
+        } catch (e) {
+            toast({
+                title: 'Could not remove item',
+                description:
+                    e instanceof Error ? e.message : 'Please try again.',
+                variant: 'destructive',
+            });
+        }
+    };
+
+    const orderTotal = items.reduce((sum, item) => {
+        if (!item.listing) return sum;
+        return (
             sum +
-            toDisplayAmount(item.listing.price, item.listing.user?.region),
-        0,
-    );
+            toDisplayAmount(item.listing.price, item.listing.user?.region)
+        );
+    }, 0);
 
     return (
         <AnimatePresence>
@@ -116,7 +140,7 @@ export function CartDrawer() {
                         <div className="flex items-center justify-between border-b border-border p-5">
                             <div className="flex items-center gap-2">
                                 <ShoppingCart className="size-5 text-primary" />
-                                <h2 className="text-lg font-bold text-foreground">
+                                <h2 className="font-display text-lg font-semibold text-foreground">
                                     {t('cart_drawer.your_order')}
                                 </h2>
                                 {items.length > 0 && (
@@ -163,9 +187,12 @@ export function CartDrawer() {
                             ) : (
                                 <div className="space-y-4">
                                     {items.map((item) => {
-                                        const imgUrl =
-                                            item.listing.image_url ??
-                                            item.listing.image_path;
+                                        const listing = item.listing;
+                                        const listingId =
+                                            listing?.id || item.listing_id || '';
+                                        const imgUrl = listing
+                                            ? resolveListingImage(listing)
+                                            : null;
                                         return (
                                             <motion.div
                                                 key={item.id}
@@ -173,92 +200,108 @@ export function CartDrawer() {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, x: -10 }}
-                                                className="flex gap-4 rounded-xl border border-border/80 bg-muted/20 p-3"
+                                                className="flex gap-4 rounded-2xl border border-border/80 bg-muted/20 p-3"
                                             >
-                                                <Link
-                                                    href={`/listings/${item.listing.id}`}
-                                                    onClick={handleClose}
-                                                    className="size-16 shrink-0 overflow-hidden rounded-lg bg-muted"
-                                                >
-                                                    {imgUrl ? (
-                                                        <img
-                                                            src={imgUrl}
-                                                            alt=""
-                                                            className="size-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className="flex size-full items-center justify-center text-xs text-zinc-400">
-                                                            —
-                                                        </div>
-                                                    )}
-                                                </Link>
+                                                {listingId ? (
+                                                    <Link
+                                                        href={`/listings/${listingId}`}
+                                                        onClick={handleClose}
+                                                        className="size-16 shrink-0 overflow-hidden rounded-xl bg-muted"
+                                                    >
+                                                        {imgUrl ? (
+                                                            // eslint-disable-next-line @next/next/no-img-element
+                                                            <img
+                                                                src={imgUrl}
+                                                                alt={
+                                                                    listing?.title ||
+                                                                    'Listing'
+                                                                }
+                                                                className="size-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <div className="flex size-full items-center justify-center text-xs text-muted-foreground">
+                                                                —
+                                                            </div>
+                                                        )}
+                                                    </Link>
+                                                ) : (
+                                                    <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted text-xs text-muted-foreground">
+                                                        —
+                                                    </div>
+                                                )}
 
                                                 <div className="flex min-w-0 flex-1 flex-col justify-between">
                                                     <div>
                                                         <div className="flex items-start justify-between gap-1">
-                                                            <h4 className="truncate text-xs font-bold text-foreground hover:underline">
-                                                                <Link
-                                                                    href={`/listings/${item.listing.id}`}
-                                                                    onClick={
-                                                                        handleClose
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        item
-                                                                            .listing
-                                                                            .title
-                                                                    }
-                                                                </Link>
-                                                            </h4>
-                                                            <button
-                                                                onClick={() =>
-                                                                    removeFromCart(
-                                                                        item
-                                                                            .listing
-                                                                            .id,
-                                                                    )
-                                                                }
-                                                                className="p-0.5 text-muted-foreground transition-colors hover:text-destructive"
-                                                                title={t(
-                                                                    'cart.remove',
+                                                            <h4 className="truncate text-sm font-semibold text-foreground hover:underline">
+                                                                {listingId ? (
+                                                                    <Link
+                                                                        href={`/listings/${listingId}`}
+                                                                        onClick={
+                                                                            handleClose
+                                                                        }
+                                                                    >
+                                                                        {listing?.title ||
+                                                                            'Unavailable listing'}
+                                                                    </Link>
+                                                                ) : (
+                                                                    listing?.title ||
+                                                                    'Unavailable listing'
                                                                 )}
-                                                            >
-                                                                <Trash2 className="size-3.5" />
-                                                            </button>
+                                                            </h4>
+                                                            {listingId ? (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        void handleRemove(
+                                                                            listingId,
+                                                                        )
+                                                                    }
+                                                                    className="p-0.5 text-muted-foreground transition-colors hover:text-destructive"
+                                                                    title={t(
+                                                                        'cart.remove',
+                                                                    )}
+                                                                >
+                                                                    <Trash2 className="size-3.5" />
+                                                                </button>
+                                                            ) : null}
                                                         </div>
-                                                        <p className="text-[10px] text-muted-foreground">
-                                                            {CONDITION_KEYS[
-                                                                item.listing
-                                                                    .condition ??
-                                                                    ''
-                                                            ]
-                                                                ? t(
-                                                                      CONDITION_KEYS[
-                                                                          item
-                                                                              .listing
-                                                                              .condition ??
-                                                                              ''
-                                                                      ],
-                                                                  )
-                                                                : item.listing
-                                                                      .condition}
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {!listing
+                                                                ? 'This item is no longer available'
+                                                                : CONDITION_KEYS[
+                                                                        listing.condition ??
+                                                                            ''
+                                                                    ]
+                                                                  ? t(
+                                                                        CONDITION_KEYS[
+                                                                            listing.condition ??
+                                                                                ''
+                                                                        ],
+                                                                    )
+                                                                  : listing.condition}
                                                         </p>
                                                     </div>
 
-                                                    <div className="mt-1 flex items-center justify-between text-xs">
+                                                    <div className="mt-1 flex items-center justify-between text-sm">
                                                         <span className="font-semibold text-foreground">
-                                                            {formatPrice(
-                                                                item.listing
-                                                                    .price,
-                                                                item.listing
-                                                                    .user
-                                                                    ?.region,
-                                                            )}
+                                                            {listing
+                                                                ? formatPrice(
+                                                                      listing.price,
+                                                                      listing
+                                                                          .user
+                                                                          ?.region,
+                                                                  )
+                                                                : '—'}
                                                         </span>
-                                                        <span className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
-                                                            <Check className="size-3 text-primary" />
-                                                            {t('cart.in_stock')}
-                                                        </span>
+                                                        {listing ? (
+                                                            <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                                                                <Check className="size-3 text-primary" />
+                                                                {t(
+                                                                    'cart.in_stock',
+                                                                )}
+                                                            </span>
+                                                        ) : null}
                                                     </div>
                                                 </div>
                                             </motion.div>
@@ -294,6 +337,10 @@ export function CartDrawer() {
                                         : t('cart_drawer.proceed')}
                                     <ArrowRight className="size-4" />
                                 </Button>
+                                <ShopTrustStrip
+                                    className="justify-center"
+                                    message="Secure checkout · Buyer protection on eligible orders"
+                                />
                             </div>
                         )}
                     </motion.div>

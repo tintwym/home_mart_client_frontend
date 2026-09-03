@@ -11,6 +11,8 @@
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+    --font-display:
+        'Syne', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -213,12 +215,20 @@
         @apply absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground ring-2 ring-background;
     }
 
+    .font-display {
+        font-family: var(--font-display);
+    }
+
     .shop-hero {
         @apply relative overflow-hidden rounded-2xl border border-primary/10 bg-gradient-to-br from-primary/12 via-secondary/20 to-accent/12;
     }
 
+    .shop-hero-bleed {
+        @apply -mx-4 overflow-hidden rounded-none border-0 sm:-mx-6 sm:rounded-2xl sm:border sm:border-primary/10 lg:mx-0;
+    }
+
     .shop-pill {
-        @apply shrink-0 rounded-full border border-primary/15 bg-card/90 px-3.5 py-1.5 text-sm shadow-xs transition-all duration-200 hover:border-primary/35 hover:bg-primary/5 hover:shadow-sm active:scale-[0.98];
+        @apply shrink-0 rounded-full border border-primary/15 bg-card/90 px-3.5 py-1.5 text-sm font-medium text-foreground shadow-xs transition-all duration-200 hover:border-primary/35 hover:bg-primary/5 hover:shadow-sm active:scale-[0.98];
     }
 
     .scrollbar-none {

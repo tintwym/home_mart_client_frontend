@@ -1,6 +1,6 @@
 'use client';
 
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from '@/hooks/use-translations';
@@ -56,6 +56,12 @@ export function SiteSearchBar({
         SEARCH_COPY.button,
     );
 
+    const clear = () => {
+        setQuery('');
+        router.push('/');
+        inputRef.current?.focus();
+    };
+
     return (
         <form
             className={cn('relative w-full', className)}
@@ -65,7 +71,7 @@ export function SiteSearchBar({
                 router.push(q ? `/?q=${encodeURIComponent(q)}` : '/');
             }}
         >
-            <div className="relative flex min-w-0 items-center overflow-hidden rounded-xl border border-primary/20 bg-card/95 shadow-sm transition-[box-shadow,border-color] focus-within:border-primary/40 focus-within:shadow-md focus-within:ring-2 focus-within:ring-primary/15">
+            <div className="relative flex min-w-0 items-center overflow-hidden rounded-full border border-primary/20 bg-card/95 shadow-sm transition-[box-shadow,border-color] focus-within:border-primary/40 focus-within:shadow-md focus-within:ring-2 focus-within:ring-primary/15">
                 <input
                     ref={inputRef}
                     type="search"
@@ -74,20 +80,40 @@ export function SiteSearchBar({
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder={placeholder}
                     className={cn(
-                        'min-w-0 flex-1 border-0 bg-transparent pl-3.5 text-sm outline-none placeholder:text-muted-foreground',
-                        compact ? 'py-2.5 pr-10' : 'py-3 pr-11 md:pl-4',
+                        'min-w-0 flex-1 border-0 bg-transparent pl-4 text-sm outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden',
+                        compact ? 'py-2.5' : 'py-3',
+                        query.trim()
+                            ? compact
+                                ? 'pr-20'
+                                : 'pr-20'
+                            : compact
+                              ? 'pr-10'
+                              : 'pr-11',
                     )}
                     aria-label={ariaLabel}
                 />
+                {query.trim() ? (
+                    <button
+                        type="button"
+                        onClick={clear}
+                        className={cn(
+                            'absolute top-0 flex h-full items-center justify-center text-muted-foreground transition-colors hover:text-foreground',
+                            compact ? 'right-10 w-8' : 'right-11 w-9',
+                        )}
+                        aria-label="Clear search"
+                    >
+                        <X className="size-3.5" />
+                    </button>
+                ) : null}
                 <button
                     type="submit"
                     className={cn(
-                        'absolute top-0 right-0 flex h-full items-center justify-center rounded-r-xl bg-primary/10 text-primary transition-colors hover:bg-primary/15 hover:text-primary',
+                        'absolute top-0 right-0 flex h-full items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/10',
                         compact ? 'w-10' : 'w-11',
                     )}
                     aria-label={buttonLabel}
                 >
-                    <Search className="size-4 shrink-0 md:size-[1.125rem]" />
+                    <Search className="size-4 shrink-0" />
                 </button>
             </div>
         </form>

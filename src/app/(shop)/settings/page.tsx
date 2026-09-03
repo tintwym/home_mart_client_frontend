@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
-import { PageHeader } from '@/components/page-kit';
+import { loginHref } from '@/lib/auth-redirect';
+import { PageHeader, PageLoading } from '@/components/page-kit';
 import {
     User,
     Lock,
@@ -33,10 +34,11 @@ export default function SettingsPage() {
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading && !user) router.replace('/login');
+        if (!loading && !user) router.replace(loginHref('/settings'));
     }, [loading, user, router]);
 
-    if (!user) return null;
+    if (loading) return <PageLoading label="Loading settings…" />;
+    if (!user) return <PageLoading label="Redirecting…" />;
 
     const initial = (user.name?.trim() || user.email || '?').charAt(0).toUpperCase();
 
@@ -86,7 +88,7 @@ export default function SettingsPage() {
                 className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/25 px-4 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
                 onClick={async () => {
                     await logout();
-                    router.push('/login');
+                    router.push(loginHref('/settings'));
                 }}
             >
                 <LogOut className="size-4" />

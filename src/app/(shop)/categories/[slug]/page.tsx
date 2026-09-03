@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { getListings } from '@/lib/api';
 import { useSharedProps } from '@/lib/bootstrap';
 import { ListingCard, type ListingCardListing } from '@/components/listing-card';
+import { EmptyState } from '@/components/empty-state';
 import { BackLink, PageError, PageHeader, PageLoading } from '@/components/page-kit';
 
 export default function CategoryPage() {
@@ -48,9 +49,15 @@ export default function CategoryPage() {
             ) : error ? (
                 <PageError message={error} onRetry={() => void load()} />
             ) : listings.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No listings found.</p>
+                <EmptyState
+                    type="listings"
+                    title="Nothing in this category yet"
+                    description="Check back soon, or browse other categories from the home page."
+                    actionLabel="Browse all listings"
+                    actionHref="/"
+                />
             ) : (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-5">
                     {listings.map((l) => (
                         <ListingCard key={l.id} listing={l} />
                     ))}

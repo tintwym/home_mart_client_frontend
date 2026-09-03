@@ -6,9 +6,12 @@ import { useRouter } from 'next/navigation';
 import { startCheckout } from '@/lib/checkout';
 import { apiFetch, getCart, resolveListingImage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { loginHref } from '@/lib/auth-redirect';
 import { PageError, PageHeader, PageLoading } from '@/components/page-kit';
 import { EmptyState } from '@/components/empty-state';
+import { ShopTrustStrip } from '@/components/shop-trust-strip';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/toast';
 import { CurrencyFormatter } from '@/components/currency-formatter';
 import { ShoppingBag, Trash2 } from 'lucide-react';
 
@@ -27,6 +30,7 @@ type CartRow = {
 export default function CartPage() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
+    const { toast } = useToast();
     const [items, setItems] = useState<CartRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -47,7 +51,7 @@ export default function CartPage() {
 
     useEffect(() => {
         if (!authLoading && !user) {
-            router.replace('/login');
+            router.replace(loginHref('/cart'));
             return;
         }
         if (user) void load();
@@ -63,8 +67,25 @@ export default function CartPage() {
     );
 
     const remove = async (listingId: string) => {
-        await apiFetch(`/api/listings/${listingId}/cart`, { method: 'DELETE' });
-        await load();
+        if (!listingId) return;
+        try {
+            await apiFetch(`/api/listings/${listingId}/cart`, {
+                method: 'DELETE',
+            });
+            await load();
+            (
+                globalThis as unknown as {
+                    __hmBootstrapRefresh?: () => void;
+                }
+            ).__hmBootstrapRefresh?.();
+        } catch (e) {
+            toast({
+                title: 'Could not remove item',
+                description:
+                    e instanceof Error ? e.message : 'Please try again.',
+                variant: 'destructive',
+            });
+        }
     };
 
     return (
@@ -86,38 +107,31 @@ export default function CartPage() {
                 <EmptyState
                     type="generic"
                     title="Your cart is empty"
-                    description="Browse listings and tap Add to cart when you find something you like."
+                    description="Browse listings and tap the cart button when you find something you like."
                     actionLabel="Browse listings"
                     actionHref="/"
                 />
             ) : (
                 <div className="space-y-6">
-                    <ul className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs">
-                        {items.map((item, index) => {
+                    <ul className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs divide-y divide-border/60">
+                        {items.map((item) => {
                             const listing = item.listing;
                             const lid = listing?.id || item.listing_id || '';
                             const imageSrc = listing
                                 ? resolveListingImage(listing)
                                 : null;
                             return (
-                                <li
-                                    key={item.id}
-                                    className={
-                                        index > 0
-                                            ? 'border-t border-border/60'
-                                            : ''
-                                    }
-                                >
-                                    <div className="flex items-center gap-4 p-4">
+                                <li key={item.id}>
+                                    <div className="flex items-center gap-4 p-4 transition-colors hover:bg-muted/20">
                                         <Link
                                             href={`/listings/${lid}`}
-                                            className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-muted/50"
+                                            className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-muted/50 ring-1 ring-border/60"
                                         >
                                             {imageSrc ? (
                                                 // eslint-disable-next-line @next/next/no-img-element
                                                 <img
                                                     src={imageSrc}
-                                                    alt=""
+                                                    alt={listing?.title || 'Listing'}
                                                     className="size-full object-cover"
                                                 />
                                             ) : (
@@ -146,6 +160,7 @@ export default function CartPage() {
                                             size="icon"
                                             className="shrink-0 text-muted-foreground hover:text-destructive"
                                             aria-label="Remove from cart"
+                                            disabled={!lid}
                                             onClick={() => void remove(lid)}
                                         >
                                             <Trash2 className="size-4" />
@@ -156,12 +171,12 @@ export default function CartPage() {
                         })}
                     </ul>
 
-                    <div className="rounded-2xl border border-primary/15 bg-primary/5 p-5">
+                    <div className="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-10 rounded-2xl border border-primary/20 bg-card/95 p-5 shadow-lg backdrop-blur-md lg:static lg:shadow-xs">
                         <div className="flex items-center justify-between gap-4">
                             <span className="text-sm font-medium text-muted-foreground">
                                 Estimated total
                             </span>
-                            <span className="text-xl font-semibold">
+                            <span className="text-xl font-semibold tabular-nums">
                                 <CurrencyFormatter amount={total} />
                             </span>
                         </div>
@@ -173,17 +188,26 @@ export default function CartPage() {
                                 setCheckingOut(true);
                                 void startCheckout(router)
                                     .catch((e) => {
-                                        setError(
-                                            e instanceof Error
-                                                ? e.message
-                                                : 'Checkout failed',
-                                        );
+                                        toast({
+                                            title: 'Checkout failed',
+                                            description:
+                                                e instanceof Error
+                                                    ? e.message
+                                                    : 'Please try again.',
+                                            variant: 'destructive',
+                                        });
                                     })
                                     .finally(() => setCheckingOut(false));
                             }}
                         >
-                            {checkingOut ? 'Starting checkout…' : 'Proceed to checkout'}
+                            {checkingOut
+                                ? 'Starting checkout…'
+                                : 'Proceed to checkout'}
                         </Button>
+                        <ShopTrustStrip
+                            className="mt-3"
+                            message="Secure checkout · Buyer protection on eligible orders"
+                        />
                     </div>
                 </div>
             )}

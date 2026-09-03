@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getFavorites } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { loginHref } from '@/lib/auth-redirect';
 import { ListingCard, type ListingCardListing } from '@/components/listing-card';
 import { PageError, PageHeader, PageLoading } from '@/components/page-kit';
 import { EmptyState } from '@/components/empty-state';
@@ -37,7 +38,7 @@ export default function FavoritesPage() {
 
     useEffect(() => {
         if (!authLoading && !user) {
-            router.replace('/login');
+            router.replace(loginHref('/favorites'));
             return;
         }
         if (user) void load();

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { BackLink, PageHeader } from '@/components/page-kit';
+import { loginHref } from '@/lib/auth-redirect';
+import { BackLink, PageHeader, PageLoading } from '@/components/page-kit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,7 +21,7 @@ export default function ProfileSettingsPage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!loading && !user) router.replace('/login');
+        if (!loading && !user) router.replace(loginHref('/settings/profile'));
         if (user) {
             setName(user.name || '');
             setPhone((user.phone as string) || '');
@@ -28,7 +29,8 @@ export default function ProfileSettingsPage() {
         }
     }, [loading, user, router]);
 
-    if (!user) return null;
+    if (loading) return <PageLoading label="Loading profile…" />;
+    if (!user) return <PageLoading label="Redirecting…" />;
 
     return (
         <div className="mx-auto max-w-lg">

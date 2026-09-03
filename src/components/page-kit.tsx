@@ -71,7 +71,7 @@ export function PageHeader({
             <div>
                 <Heading
                     className={cn(
-                        'font-semibold tracking-tight',
+                        'font-display font-semibold tracking-tight',
                         Heading === 'h1' ? 'text-2xl' : 'text-xl',
                     )}
                 >

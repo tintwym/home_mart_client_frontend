@@ -9,6 +9,7 @@ import { RegionSwitcher } from '@/components/region-switcher';
 import { CurrencySwitcher } from '@/components/currency-switcher';
 import { NotificationDropdown } from '@/components/notification-dropdown';
 import { useAuth } from '@/lib/auth';
+import { loginHref } from '@/lib/auth-redirect';
 import { useSharedProps } from '@/lib/bootstrap';
 import { useCart } from '@/hooks/use-cart';
 import { Button } from '@/components/ui/button';
@@ -45,7 +46,7 @@ function ShopHeaderInner() {
                         <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10 ring-1 ring-primary/15 sm:size-9">
                             <AppLogoIcon className="size-full" />
                         </span>
-                        <span className="truncate text-base font-semibold tracking-tight sm:text-lg">
+                        <span className="font-display truncate text-base font-semibold tracking-tight sm:text-lg">
                             {appName}
                         </span>
                     </Link>
@@ -53,22 +54,27 @@ function ShopHeaderInner() {
                     <SiteSearchBar
                         defaultQuery={searchQuery}
                         compact
-                        className="mx-2 hidden min-w-0 flex-1 lg:block"
+                        className="mx-3 hidden min-w-0 flex-1 lg:block"
                     />
 
-                    <nav className="ml-auto flex shrink-0 items-center gap-1">
+                    <nav className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
                         <div className="flex items-center gap-0.5 lg:hidden">
                             <RegionSwitcher />
                             <CurrencySwitcher compact />
                         </div>
 
-                        <div className="hidden items-center gap-0.5 lg:flex">
+                        <div className="hidden items-center gap-1 lg:flex">
                             <RegionSwitcher />
                             <CurrencySwitcher />
                             {user ? <NotificationDropdown /> : null}
-                            <Button variant="ghost" size="icon" asChild>
-                                <Link href="/listings/create" aria-label="Sell">
-                                    <Plus className="h-5 w-5" />
+                            <Button
+                                size="sm"
+                                className="ml-1 shadow-sm"
+                                asChild
+                            >
+                                <Link href="/listings/create">
+                                    <Plus className="mr-1.5 h-4 w-4" />
+                                    Sell
                                 </Link>
                             </Button>
                             <Button variant="ghost" size="icon" asChild>
@@ -82,16 +88,19 @@ function ShopHeaderInner() {
                             variant="ghost"
                             size="icon"
                             className="relative hidden lg:inline-flex"
-                            asChild
+                            aria-label="Cart"
+                            onClick={() => {
+                                window.dispatchEvent(
+                                    new CustomEvent('open-cart-drawer'),
+                                );
+                            }}
                         >
-                            <Link href="/cart" aria-label="Cart">
-                                <ShoppingBag className="h-5 w-5" />
-                                {cartCount > 0 ? (
-                                    <span className="count-badge">
-                                        {cartCount}
-                                    </span>
-                                ) : null}
-                            </Link>
+                            <ShoppingBag className="h-5 w-5" />
+                            {cartCount > 0 ? (
+                                <span className="count-badge">
+                                    {cartCount}
+                                </span>
+                            ) : null}
                         </Button>
 
                         <Button
@@ -156,7 +165,7 @@ function ShopHeaderInner() {
                                 className="hidden lg:inline-flex"
                                 asChild
                             >
-                                <Link href="/login">
+                                <Link href={loginHref('/')}>
                                     <LogIn className="mr-1.5 h-4 w-4" />
                                     Log in
                                 </Link>

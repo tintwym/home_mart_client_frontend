@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { KeyRound } from 'lucide-react';
 import { ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { resolveAuthNext } from '@/lib/auth-redirect';
 import {
     isTwoFactorRequired,
     TWO_FACTOR_EMAIL_HINT,
@@ -26,10 +27,13 @@ import {
 } from '@/lib/form-validation';
 import { useClientMounted } from '@/hooks/use-client-mounted';
 import { saveTwoFactorCredentials } from '@/lib/two-factor-session';
+import { PageLoading } from '@/components/page-kit';
 
-export default function LoginPage() {
+function LoginPageInner() {
     const { login, setSession } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const afterLogin = resolveAuthNext(searchParams.get('next'));
     const mounted = useClientMounted();
     const [passkeySupported, setPasskeySupported] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -92,7 +96,7 @@ export default function LoginPage() {
                     clearErrors();
                     try {
                         await login(values.email.trim(), values.password);
-                        router.push('/');
+                        router.push(afterLogin);
                     } catch (err) {
                         if (
                             err instanceof ApiError &&
@@ -103,7 +107,11 @@ export default function LoginPage() {
                                 values.email.trim(),
                                 values.password,
                             );
-                            router.push('/two-factor-challenge');
+                            const challenge =
+                                afterLogin !== '/'
+                                    ? `/two-factor-challenge?next=${encodeURIComponent(afterLogin)}`
+                                    : '/two-factor-challenge';
+                            router.push(challenge);
                             return;
                         }
                         setError(
@@ -203,7 +211,7 @@ export default function LoginPage() {
                             });
                             setToken(res.token);
                             setSession(res.user, res.token);
-                            router.push('/');
+                            router.push(afterLogin);
                         } catch (err) {
                             if (isTwoFactorRequired(err)) {
                                 setError(TWO_FACTOR_EMAIL_HINT);
@@ -224,5 +232,13 @@ export default function LoginPage() {
                 </Button>
             ) : null}
         </AuthPanel>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<PageLoading />}>
+            <LoginPageInner />
+        </Suspense>
     );
 }

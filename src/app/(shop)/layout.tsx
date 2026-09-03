@@ -9,6 +9,7 @@ import { isAuthOverlayPath } from '@/lib/auth-overlay-paths';
 import { useBootstrap } from '@/lib/bootstrap';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 function BootstrapErrorBanner() {
     const { error } = useBootstrap();
@@ -53,6 +54,7 @@ export default function ShopLayout({
     const pathname = usePathname();
     const authOverlayOpen = isAuthOverlayPath(pathname);
     const interceptedAuthModal = authOverlayOpen && modal != null;
+    const isHome = pathname === '/';
 
     const mainContent =
         authOverlayOpen && !interceptedAuthModal ? null : children;
@@ -64,7 +66,12 @@ export default function ShopLayout({
             <div className="flex min-h-dvh flex-col">
                 <BootstrapErrorBanner />
                 <ShopHeader />
-                <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 pb-[calc(5.25rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-6 lg:pb-6">
+                <main
+                    className={cn(
+                        'mx-auto w-full max-w-6xl flex-1 px-4 pb-[calc(5.25rem+env(safe-area-inset-bottom))] sm:px-6 lg:pb-8',
+                        isHome ? 'pt-0 sm:pt-4' : 'py-5 sm:py-6',
+                    )}
+                >
                     {mainContent}
                 </main>
                 <ShopMobileFooter />

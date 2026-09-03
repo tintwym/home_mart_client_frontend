@@ -12,6 +12,7 @@ import { Home, Heart, Plus, ShoppingBag, User, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useSharedProps } from '@/lib/bootstrap';
+import { loginHref } from '@/lib/auth-redirect';
 import { useCart } from '@/hooks/use-cart';
 
 const HIDDEN_PREFIXES = ['/checkout', '/two-factor-challenge'];
@@ -44,7 +45,9 @@ export function MobileBottomTabBar() {
 
     if (shouldHide(pathname)) return null;
 
-    const accountHref = user ? '/settings' : '/login';
+    const accountHref = user ? '/settings' : loginHref('/settings');
+    const favoritesHref = user ? '/favorites' : loginHref('/favorites');
+    const cartHref = user ? '/cart' : loginHref('/cart');
     const accountActive = user
         ? pathname.startsWith('/settings')
         : pathname === '/login' || pathname === '/register';
@@ -57,13 +60,13 @@ export function MobileBottomTabBar() {
             active: pathname === '/',
         },
         {
-            href: '/favorites',
+            href: favoritesHref,
             label: 'Saved',
             icon: Heart,
             active: pathname === '/favorites',
         },
         {
-            href: '/cart',
+            href: cartHref,
             label: 'Cart',
             icon: ShoppingBag,
             active: pathname === '/cart' || pathname.startsWith('/checkout'),
