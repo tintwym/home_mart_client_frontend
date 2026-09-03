@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import {
     Eye,
     Heart,
@@ -15,6 +15,7 @@ import {
 import { motion, useReducedMotion } from 'motion/react';
 import {
     apiFetch,
+    ApiError,
     getListing,
     resolveListingImage,
     type ListingDetail,
@@ -27,11 +28,13 @@ import {
     type ListingCardListing,
 } from '@/components/listing-card';
 import { BackLink, PageError, PageLoading } from '@/components/page-kit';
+import { ShopErrorScreen } from '@/components/shop-error-screen';
 import { ShopTrustStrip } from '@/components/shop-trust-strip';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
 import { CurrencyFormatter } from '@/components/currency-formatter';
 import { useTranslations } from '@/hooks/use-translations';
+import type { ShopErrorKind } from '@/lib/http-errors';
 import { cn } from '@/lib/utils';
 
 const CONDITION_KEYS: Record<string, string> = {
@@ -63,16 +66,36 @@ export function ListingDetailView({ id }: ListingDetailViewProps) {
     const [listing, setListing] = useState<ListingDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [missing, setMissing] = useState(false);
+    const [httpKind, setHttpKind] = useState<ShopErrorKind | null>(null);
     const [busy, setBusy] = useState(false);
     const [favorited, setFavorited] = useState(false);
 
     const load = useCallback(async () => {
         setLoading(true);
         setError(null);
+        setMissing(false);
+        setHttpKind(null);
         try {
             const row = await getListing(id);
             setListing(row);
         } catch (e) {
+            if (e instanceof ApiError) {
+                if (e.status === 404) {
+                    setMissing(true);
+                    return;
+                }
+                if (e.status === 401 || e.status === 403 || e.status === 429) {
+                    setHttpKind(
+                        e.status === 401
+                            ? 'unauthorized'
+                            : e.status === 403
+                              ? 'forbidden'
+                              : 'rate-limit',
+                    );
+                    return;
+                }
+            }
             setError(e instanceof Error ? e.message : 'Failed to load listing');
         } finally {
             setLoading(false);
@@ -89,6 +112,18 @@ export function ListingDetailView({ id }: ListingDetailViewProps) {
     }, [listing, auth.favoriteListingIds]);
 
     if (loading) return <PageLoading />;
+    if (missing) notFound();
+    if (httpKind) {
+        return (
+            <ShopErrorScreen
+                kind={httpKind}
+                onRetry={
+                    httpKind === 'rate-limit' ? () => void load() : undefined
+                }
+                returnTo={`/listings/${id}`}
+            />
+        );
+    }
     if (error || !listing) {
         return (
             <PageError

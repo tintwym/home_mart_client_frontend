@@ -4,11 +4,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch, getCategories } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { loginHref } from '@/lib/auth-redirect';
 import { unwrapCreatedListingId } from '@/lib/checkout';
 import { BackLink, PageHeader } from '@/components/page-kit';
+import { ValidatedField } from '@/components/validated-field';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useFieldValidation } from '@/hooks/use-field-validation';
+import {
+    validateListingDescription,
+    validateListingTitle,
+    validatePrice,
+    validateRequired,
+} from '@/lib/form-validation';
 
 type Category = {
     id: string;
@@ -21,14 +29,22 @@ export default function CreateListingPage() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [categories, setCategories] = useState<Category[]>([]);
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [price, setPrice] = useState('');
     const [condition, setCondition] = useState('good');
     const [categoryId, setCategoryId] = useState('');
-    const [subcategoryId, setSubcategoryId] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+
+    const { values, errors, setValue, blurField, validateAll } =
+        useFieldValidation(
+            { title: '', description: '', price: '', subcategoryId: '' },
+            {
+                title: (value) => validateListingTitle(value),
+                description: (value) => validateListingDescription(value),
+                price: (value) => validatePrice(value),
+                subcategoryId: (value) =>
+                    validateRequired(value, 'Subcategory'),
+            },
+        );
 
     const selectedCategory = useMemo(
         () => categories.find((c) => c.id === categoryId),
@@ -37,7 +53,7 @@ export default function CreateListingPage() {
     const subcategories = selectedCategory?.subcategories ?? [];
 
     useEffect(() => {
-        if (!authLoading && !user) router.replace('/login');
+        if (!authLoading && !user) router.replace(loginHref('/listings/create'));
     }, [authLoading, user, router]);
 
     useEffect(() => {
@@ -54,44 +70,44 @@ export default function CreateListingPage() {
                 const first = rows[0] as Category | undefined;
                 if (first) {
                     setCategoryId(first.id);
-                    setSubcategoryId(first.subcategories?.[0]?.id ?? '');
+                    setValue(
+                        'subcategoryId',
+                        first.subcategories?.[0]?.id ?? '',
+                    );
                 }
             } catch {
                 /* ignore */
             }
         })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- load once
     }, []);
 
     useEffect(() => {
         if (!selectedCategory) return;
         const subs = selectedCategory.subcategories ?? [];
         if (subs.length === 0) {
-            setSubcategoryId('');
+            if (values.subcategoryId) setValue('subcategoryId', '');
             return;
         }
-        if (!subs.some((s) => s.id === subcategoryId)) {
-            setSubcategoryId(subs[0]?.id ?? '');
+        if (!subs.some((s) => s.id === values.subcategoryId)) {
+            setValue('subcategoryId', subs[0]?.id ?? '');
         }
-    }, [selectedCategory, subcategoryId]);
+    }, [selectedCategory, setValue, values.subcategoryId]);
 
     const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validateAll()) return;
         setSaving(true);
         setError(null);
         try {
-            if (!subcategoryId) {
-                setError('Choose a subcategory.');
-                setSaving(false);
-                return;
-            }
             const created = await apiFetch<unknown>('/api/listings', {
                 method: 'POST',
                 body: {
-                    title,
-                    description,
-                    price: Number(price),
+                    title: values.title.trim(),
+                    description: values.description.trim(),
+                    price: Number(values.price),
                     condition,
-                    subcategoryId,
+                    subcategoryId: values.subcategoryId,
                 },
             });
             const id = unwrapCreatedListingId(created);
@@ -107,38 +123,40 @@ export default function CreateListingPage() {
         <div className="mx-auto max-w-lg">
             <BackLink href="/" label="Cancel" />
             <PageHeader title="Create listing" description="List an item for sale." />
-            <form onSubmit={onSubmit} className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor="title">Title</Label>
-                    <Input
-                        id="title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <textarea
-                        id="description"
-                        className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-28 w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="price">Price</Label>
-                    <Input
-                        id="price"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                        required
-                    />
-                </div>
+            <form onSubmit={onSubmit} className="space-y-4" noValidate>
+                <ValidatedField
+                    id="title"
+                    label="Title"
+                    placeholder="What are you selling?"
+                    value={values.title}
+                    onChange={(value) => setValue('title', value)}
+                    onBlur={() => blurField('title')}
+                    error={errors.title}
+                    disabled={saving}
+                />
+                <ValidatedField
+                    id="description"
+                    label="Description"
+                    multiline
+                    placeholder="Condition, size, pickup notes…"
+                    value={values.description}
+                    onChange={(value) => setValue('description', value)}
+                    onBlur={() => blurField('description')}
+                    error={errors.description}
+                    disabled={saving}
+                />
+                <ValidatedField
+                    id="price"
+                    label="Price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={values.price}
+                    onChange={(value) => setValue('price', value)}
+                    onBlur={() => blurField('price')}
+                    error={errors.price}
+                    disabled={saving}
+                />
                 <div className="space-y-2">
                     <Label htmlFor="condition">Condition</Label>
                     <select
@@ -176,11 +194,14 @@ export default function CreateListingPage() {
                                 <select
                                     id="subcategory"
                                     className="border-input bg-background flex h-10 w-full rounded-md border px-3 text-sm"
-                                    value={subcategoryId}
+                                    value={values.subcategoryId}
                                     onChange={(e) =>
-                                        setSubcategoryId(e.target.value)
+                                        setValue('subcategoryId', e.target.value)
                                     }
-                                    required
+                                    onBlur={() => blurField('subcategoryId')}
+                                    aria-invalid={
+                                        errors.subcategoryId ? true : undefined
+                                    }
                                 >
                                     {subcategories.map((s) => (
                                         <option key={s.id} value={s.id}>
@@ -188,6 +209,11 @@ export default function CreateListingPage() {
                                         </option>
                                     ))}
                                 </select>
+                                {errors.subcategoryId ? (
+                                    <p className="text-sm text-destructive">
+                                        {errors.subcategoryId}
+                                    </p>
+                                ) : null}
                             </div>
                         ) : (
                             <p className="text-sm text-destructive">
@@ -197,10 +223,14 @@ export default function CreateListingPage() {
                         )}
                     </>
                 ) : null}
-                {error ? <p className="text-sm text-destructive">{error}</p> : null}
+                {error ? (
+                    <p className="text-sm text-destructive" role="alert">
+                        {error}
+                    </p>
+                ) : null}
                 <Button
                     type="submit"
-                    disabled={saving || !subcategoryId}
+                    disabled={saving || !values.subcategoryId}
                     className="w-full"
                 >
                     {saving ? 'Saving…' : 'Publish listing'}

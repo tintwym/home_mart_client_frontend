@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 type Validators<T extends string> = Record<
     T,
@@ -9,76 +9,90 @@ type Validators<T extends string> = Record<
 
 type Values<T extends string> = Record<T, string>;
 
+function fieldError<T extends string>(
+    field: T,
+    snapshot: Values<T>,
+    validators: Validators<T>,
+): string | undefined {
+    return validators[field]?.(snapshot[field] ?? '', snapshot);
+}
+
 export function useFieldValidation<T extends string>(
     initialValues: Values<T>,
     validators: Validators<T>,
 ) {
-    const [values, setValues] = useState<Values<T>>(initialValues);
+    const [values, setValuesState] = useState<Values<T>>(initialValues);
     const [errors, setErrors] = useState<Partial<Record<T, string>>>({});
     const [touched, setTouched] = useState<Partial<Record<T, boolean>>>({});
+    const valuesRef = useRef(values);
+    const touchedRef = useRef(touched);
+    valuesRef.current = values;
+    touchedRef.current = touched;
 
-    const validateField = useCallback(
-        (field: T, nextValues?: Values<T>) => {
-            const snapshot = nextValues ?? values;
-            const message = validators[field]?.(
-                snapshot[field] ?? '',
-                snapshot,
-            );
+    const applyErrors = useCallback(
+        (snapshot: Values<T>, fields: T[]) => {
             setErrors((prev) => {
                 const next = { ...prev };
-                if (message) {
-                    next[field] = message;
-                } else {
-                    delete next[field];
-                }
-                return next;
-            });
-            return message;
-        },
-        [validators, values],
-    );
-
-    const setValue = useCallback(
-        (field: T, value: string) => {
-            setValues((prev) => {
-                const next = { ...prev, [field]: value };
-                (Object.keys(validators) as T[]).forEach((key) => {
-                    if (touched[key]) {
-                        validateField(key, next);
-                    }
+                fields.forEach((field) => {
+                    const message = fieldError(field, snapshot, validators);
+                    if (message) next[field] = message;
+                    else delete next[field];
                 });
                 return next;
             });
         },
-        [touched, validateField, validators],
+        [validators],
+    );
+
+    const setValues = useCallback((next: Values<T>) => {
+        valuesRef.current = next;
+        setValuesState(next);
+    }, []);
+
+    const setValue = useCallback(
+        (field: T, value: string) => {
+            const next = { ...valuesRef.current, [field]: value };
+            valuesRef.current = next;
+            setValuesState(next);
+            const fieldsToCheck = (Object.keys(validators) as T[]).filter(
+                (key) => key === field || Boolean(touchedRef.current[key]),
+            );
+            applyErrors(next, fieldsToCheck);
+        },
+        [applyErrors, validators],
     );
 
     const blurField = useCallback(
         (field: T) => {
-            setTouched((prev) => ({ ...prev, [field]: true }));
-            validateField(field);
+            const nextTouched = { ...touchedRef.current, [field]: true };
+            touchedRef.current = nextTouched;
+            setTouched(nextTouched);
+            applyErrors(valuesRef.current, [field]);
         },
-        [validateField],
+        [applyErrors],
     );
 
     const validateAll = useCallback(() => {
+        const fields = Object.keys(validators) as T[];
+        const snapshot = valuesRef.current;
+        const nextTouched = Object.fromEntries(
+            fields.map((field) => [field, true]),
+        ) as Partial<Record<T, boolean>>;
+        touchedRef.current = nextTouched;
+        setTouched(nextTouched);
+
         const nextErrors: Partial<Record<T, string>> = {};
         let valid = true;
-        (Object.keys(validators) as T[]).forEach((field) => {
-            const message = validators[field](values[field] ?? '', values);
+        fields.forEach((field) => {
+            const message = fieldError(field, snapshot, validators);
             if (message) {
                 nextErrors[field] = message;
                 valid = false;
             }
         });
         setErrors(nextErrors);
-        setTouched(
-            Object.fromEntries(
-                (Object.keys(validators) as T[]).map((field) => [field, true]),
-            ) as Partial<Record<T, boolean>>,
-        );
         return valid;
-    }, [validators, values]);
+    }, [validators]);
 
     const clearErrors = useCallback(() => setErrors({}), []);
 

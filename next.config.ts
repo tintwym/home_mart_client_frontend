@@ -4,6 +4,9 @@ const backendUrl = process.env.BACKEND_URL || 'http://localhost:5199';
 
 const nextConfig: NextConfig = {
     reactStrictMode: true,
+    experimental: {
+        authInterrupts: true,
+    },
     images: {
         remotePatterns: [
             {

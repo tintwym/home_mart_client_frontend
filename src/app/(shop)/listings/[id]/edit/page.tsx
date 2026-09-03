@@ -2,12 +2,27 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { apiFetch, getCategories, getListing } from '@/lib/api';
+import { apiFetch, ApiError, getCategories, getListing } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { BackLink, PageError, PageHeader, PageLoading } from '@/components/page-kit';
+import { loginHref } from '@/lib/auth-redirect';
+import {
+    BackLink,
+    PageError,
+    PageHeader,
+    PageLoading,
+} from '@/components/page-kit';
+import { ShopErrorScreen } from '@/components/shop-error-screen';
+import { ValidatedField } from '@/components/validated-field';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useFieldValidation } from '@/hooks/use-field-validation';
+import type { ShopErrorKind } from '@/lib/http-errors';
+import {
+    validateListingDescription,
+    validateListingTitle,
+    validatePrice,
+    validateRequired,
+} from '@/lib/form-validation';
 
 type Category = {
     id: string;
@@ -20,15 +35,26 @@ export default function EditListingPage() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [categories, setCategories] = useState<Category[]>([]);
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [price, setPrice] = useState('');
     const [condition, setCondition] = useState('good');
     const [categoryId, setCategoryId] = useState('');
-    const [subcategoryId, setSubcategoryId] = useState('');
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
+    const [httpKind, setHttpKind] = useState<ShopErrorKind | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+    const [ready, setReady] = useState(false);
+
+    const { values, errors, setValue, blurField, validateAll, setValues } =
+        useFieldValidation(
+            { title: '', description: '', price: '', subcategoryId: '' },
+            {
+                title: (value) => validateListingTitle(value),
+                description: (value) => validateListingDescription(value),
+                price: (value) => validatePrice(value),
+                subcategoryId: (value) =>
+                    validateRequired(value, 'Subcategory'),
+            },
+        );
 
     const selectedCategory = useMemo(
         () => categories.find((c) => c.id === categoryId),
@@ -37,8 +63,9 @@ export default function EditListingPage() {
     const subcategories = selectedCategory?.subcategories ?? [];
 
     useEffect(() => {
-        if (!authLoading && !user) router.replace('/login');
-    }, [authLoading, user, router]);
+        if (!authLoading && !user)
+            router.replace(loginHref(`/listings/${id}/edit`));
+    }, [authLoading, user, router, id]);
 
     useEffect(() => {
         void (async () => {
@@ -49,53 +76,74 @@ export default function EditListingPage() {
                 ]);
                 const rows = Array.isArray(catsRes)
                     ? catsRes
-                    : ((catsRes as { data?: Category[]; categories?: Category[] })
-                          .data ??
+                    : ((catsRes as {
+                          data?: Category[];
+                          categories?: Category[];
+                      }).data ??
                       (catsRes as { categories?: Category[] }).categories ??
                       []);
                 setCategories(rows as Category[]);
-
-                setTitle(String(listing.title ?? ''));
-                setDescription(String(listing.description ?? ''));
-                setPrice(String(listing.price ?? ''));
                 setCondition(String(listing.condition ?? 'good'));
 
                 const listingSubId =
-                    listing.subcategory_id ??
-                    listing.category?.id ??
-                    '';
-                setSubcategoryId(listingSubId);
-
+                    listing.subcategory_id ?? listing.category?.id ?? '';
                 const parent = (rows as Category[]).find((cat) =>
                     cat.subcategories?.some((s) => s.id === listingSubId),
                 );
-                if (parent) {
-                    setCategoryId(parent.id);
-                } else if (rows[0]) {
-                    setCategoryId((rows[0] as Category).id);
-                }
+                if (parent) setCategoryId(parent.id);
+                else if (rows[0]) setCategoryId((rows[0] as Category).id);
+
+                setValues({
+                    title: String(listing.title ?? ''),
+                    description: String(listing.description ?? ''),
+                    price: String(listing.price ?? ''),
+                    subcategoryId: listingSubId,
+                });
+                setReady(true);
             } catch (e) {
-                setError(e instanceof Error ? e.message : 'Failed to load');
+                if (e instanceof ApiError) {
+                    if (e.status === 404) {
+                        setHttpKind('not-found');
+                        return;
+                    }
+                    if (e.status === 401) {
+                        setHttpKind('unauthorized');
+                        return;
+                    }
+                    if (e.status === 403) {
+                        setHttpKind('forbidden');
+                        return;
+                    }
+                }
+                setLoadError(e instanceof Error ? e.message : 'Failed to load');
             } finally {
                 setLoading(false);
             }
         })();
-    }, [id]);
+    }, [id, setValues]);
 
     useEffect(() => {
-        if (!selectedCategory) return;
+        if (!ready || !selectedCategory) return;
         const subs = selectedCategory.subcategories ?? [];
         if (subs.length === 0) {
-            setSubcategoryId('');
+            if (values.subcategoryId) setValue('subcategoryId', '');
             return;
         }
-        if (!subs.some((s) => s.id === subcategoryId)) {
-            setSubcategoryId(subs[0]?.id ?? '');
+        if (!subs.some((s) => s.id === values.subcategoryId)) {
+            setValue('subcategoryId', subs[0]?.id ?? '');
         }
-    }, [selectedCategory, subcategoryId]);
+    }, [ready, selectedCategory, setValue, values.subcategoryId]);
 
     if (loading) return <PageLoading />;
-    if (error && !title) return <PageError message={error} />;
+    if (httpKind) {
+        return (
+            <ShopErrorScreen
+                kind={httpKind}
+                returnTo={`/listings/${id}/edit`}
+            />
+        );
+    }
+    if (loadError && !ready) return <PageError message={loadError} />;
 
     return (
         <div className="mx-auto max-w-lg">
@@ -103,23 +151,21 @@ export default function EditListingPage() {
             <PageHeader title="Edit listing" />
             <form
                 className="space-y-4"
+                noValidate
                 onSubmit={async (e) => {
                     e.preventDefault();
-                    if (!subcategoryId) {
-                        setError('Choose a subcategory.');
-                        return;
-                    }
+                    if (!validateAll()) return;
                     setSaving(true);
                     setError(null);
                     try {
                         await apiFetch(`/api/listings/${id}`, {
                             method: 'PUT',
                             body: {
-                                title,
-                                description,
-                                price: Number(price),
+                                title: values.title.trim(),
+                                description: values.description.trim(),
+                                price: Number(values.price),
                                 condition,
-                                subcategoryId,
+                                subcategoryId: values.subcategoryId,
                             },
                         });
                         router.push(`/listings/${id}`);
@@ -132,35 +178,37 @@ export default function EditListingPage() {
                     }
                 }}
             >
-                <div className="space-y-2">
-                    <Label htmlFor="title">Title</Label>
-                    <Input
-                        id="title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <textarea
-                        id="description"
-                        className="border-input bg-background flex min-h-28 w-full rounded-md border px-3 py-2 text-sm"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="price">Price</Label>
-                    <Input
-                        id="price"
-                        type="number"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                        required
-                    />
-                </div>
+                <ValidatedField
+                    id="title"
+                    label="Title"
+                    value={values.title}
+                    onChange={(value) => setValue('title', value)}
+                    onBlur={() => blurField('title')}
+                    error={errors.title}
+                    disabled={saving}
+                />
+                <ValidatedField
+                    id="description"
+                    label="Description"
+                    multiline
+                    value={values.description}
+                    onChange={(value) => setValue('description', value)}
+                    onBlur={() => blurField('description')}
+                    error={errors.description}
+                    disabled={saving}
+                />
+                <ValidatedField
+                    id="price"
+                    label="Price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={values.price}
+                    onChange={(value) => setValue('price', value)}
+                    onBlur={() => blurField('price')}
+                    error={errors.price}
+                    disabled={saving}
+                />
                 <div className="space-y-2">
                     <Label htmlFor="condition">Condition</Label>
                     <select
@@ -198,11 +246,14 @@ export default function EditListingPage() {
                                 <select
                                     id="subcategory"
                                     className="border-input bg-background flex h-10 w-full rounded-md border px-3 text-sm"
-                                    value={subcategoryId}
+                                    value={values.subcategoryId}
                                     onChange={(e) =>
-                                        setSubcategoryId(e.target.value)
+                                        setValue(
+                                            'subcategoryId',
+                                            e.target.value,
+                                        )
                                     }
-                                    required
+                                    onBlur={() => blurField('subcategoryId')}
                                 >
                                     {subcategories.map((s) => (
                                         <option key={s.id} value={s.id}>
@@ -210,14 +261,23 @@ export default function EditListingPage() {
                                         </option>
                                     ))}
                                 </select>
+                                {errors.subcategoryId ? (
+                                    <p className="text-sm text-destructive">
+                                        {errors.subcategoryId}
+                                    </p>
+                                ) : null}
                             </div>
                         ) : null}
                     </>
                 ) : null}
-                {error ? <p className="text-sm text-destructive">{error}</p> : null}
+                {error ? (
+                    <p className="text-sm text-destructive" role="alert">
+                        {error}
+                    </p>
+                ) : null}
                 <Button
                     type="submit"
-                    disabled={saving || !subcategoryId}
+                    disabled={saving || !values.subcategoryId}
                     className="w-full"
                 >
                     {saving ? 'Saving…' : 'Save changes'}
