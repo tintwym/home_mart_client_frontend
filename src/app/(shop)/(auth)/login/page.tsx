@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import {
     browserSupportsWebAuthn,
     startAuthentication,
+    unwrapPasskeyOptions,
 } from '@/lib/passkeys-client';
 import { useFieldValidation } from '@/hooks/use-field-validation';
 import { isFirebaseConfigured } from '@/lib/firebase';
@@ -185,18 +186,20 @@ function LoginPageInner() {
                             const { apiFetch, setToken } = await import(
                                 '@/lib/api'
                             );
-                            const optionsJSON = await apiFetch(
+                            const email = values.email.trim();
+                            const envelope = await apiFetch(
                                 '/api/passkeys/authentication-options',
-                                { method: 'POST', auth: false, body: {} },
+                                {
+                                    method: 'POST',
+                                    auth: false,
+                                    body: email ? { email } : {},
+                                },
                             );
+                            const { options, state } =
+                                unwrapPasskeyOptions(envelope);
                             const credential = await startAuthentication({
-                                optionsJSON: optionsJSON as never,
+                                optionsJSON: options,
                             });
-                            const state =
-                                typeof (optionsJSON as { state?: string })
-                                    ?.state === 'string'
-                                    ? (optionsJSON as { state: string }).state
-                                    : undefined;
                             const res = await apiFetch<{
                                 user: import('@/lib/api').AuthUser;
                                 token: string;
@@ -204,9 +207,8 @@ function LoginPageInner() {
                                 method: 'POST',
                                 auth: false,
                                 body: {
-                                    start_authentication_response:
-                                        JSON.stringify(credential),
-                                    ...(state ? { state } : {}),
+                                    state,
+                                    credential,
                                 },
                             });
                             setToken(res.token);
@@ -215,6 +217,17 @@ function LoginPageInner() {
                         } catch (err) {
                             if (isTwoFactorRequired(err)) {
                                 setError(TWO_FACTOR_EMAIL_HINT);
+                                return;
+                            }
+                            // User cancelled the browser passkey prompt.
+                            if (
+                                err instanceof Error &&
+                                (err.name === 'NotAllowedError' ||
+                                    /timed out|not allowed|abort/i.test(
+                                        err.message,
+                                    ))
+                            ) {
+                                setError('Passkey sign-in was cancelled.');
                                 return;
                             }
                             setError(
