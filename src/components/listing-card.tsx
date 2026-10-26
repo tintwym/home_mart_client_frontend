@@ -165,8 +165,8 @@ export function ListingCard({ listing }: ListingCardProps) {
     };
 
     return (
-        <article className="group/card relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md">
-            <div className="relative aspect-square w-full overflow-hidden bg-muted/50">
+        <article className="group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md">
+            <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-muted/50">
                 <Link href={`/listings/${listing.id}`} className="block size-full">
                     {showImage ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -291,8 +291,8 @@ export function ListingCard({ listing }: ListingCardProps) {
             </div>
 
             <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-3 sm:p-3.5">
-                <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-                    <span className="truncate font-medium">
+                <div className="flex h-4 items-center justify-between gap-2 text-[11px] leading-none text-muted-foreground">
+                    <span className="min-w-0 truncate font-medium">
                         {listing.category?.name ?? 'General'}
                     </span>
                     <span className="shrink-0 tabular-nums">
@@ -304,20 +304,21 @@ export function ListingCard({ listing }: ListingCardProps) {
                     href={`/listings/${listing.id}`}
                     className="block min-w-0 transition-colors group-hover/card:text-primary"
                 >
-                    <h3 className="line-clamp-2 text-sm leading-snug font-semibold text-foreground">
+                    {/* Fixed 2-line slot so price/seller rows align across the grid */}
+                    <h3 className="line-clamp-2 min-h-[2.5rem] text-sm leading-snug font-semibold text-foreground">
                         {listing.title}
                     </h3>
                 </Link>
 
                 <div className="mt-auto flex items-end justify-between gap-2 pt-1">
-                    <div className="min-w-0">
-                        <p className="text-base font-bold tracking-tight text-foreground">
+                    <div className="flex min-w-0 flex-col gap-0.5">
+                        <p className="text-base leading-none font-bold tracking-tight text-foreground">
                             <CurrencyFormatter
                                 amount={listing.price}
                                 sellerRegion={listing.user?.region}
                             />
                         </p>
-                        <p className="truncate text-[11px] text-muted-foreground">
+                        <p className="truncate text-[11px] leading-tight text-muted-foreground">
                             {listing.user?.name ?? t('common.unknown')}
                             {CONDITION_KEYS[listing.condition]
                                 ? ` · ${t(CONDITION_KEYS[listing.condition])}`
@@ -364,12 +365,18 @@ export function ListingCard({ listing }: ListingCardProps) {
 
 export function ListingCardSkeleton() {
     return (
-        <div className="flex min-w-0 animate-pulse flex-col overflow-hidden rounded-2xl border border-border/50 bg-card shadow-xs">
-            <div className="aspect-square w-full bg-muted/60" />
-            <div className="flex flex-col gap-2 p-3.5">
-                <div className="h-3 w-1/2 rounded bg-muted" />
-                <div className="h-4 w-3/4 rounded bg-muted" />
-                <div className="mt-1 h-5 w-1/3 rounded bg-muted" />
+        <div className="flex h-full min-w-0 animate-pulse flex-col overflow-hidden rounded-2xl border border-border/50 bg-card shadow-xs">
+            <div className="aspect-square w-full shrink-0 bg-muted/60" />
+            <div className="flex flex-1 flex-col gap-1.5 p-3.5">
+                <div className="h-4 w-1/2 rounded bg-muted" />
+                <div className="min-h-[2.5rem] space-y-1.5">
+                    <div className="h-3.5 w-full rounded bg-muted" />
+                    <div className="h-3.5 w-2/3 rounded bg-muted" />
+                </div>
+                <div className="mt-auto space-y-1 pt-1">
+                    <div className="h-5 w-1/3 rounded bg-muted" />
+                    <div className="h-3 w-2/3 rounded bg-muted" />
+                </div>
             </div>
         </div>
     );

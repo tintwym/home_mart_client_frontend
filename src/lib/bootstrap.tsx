@@ -13,6 +13,7 @@ import {
     getBootstrap,
     type BootstrapData,
 } from '@/lib/api';
+import { getLocaleCatalog } from '@/lib/locale-catalog';
 import { readShopPrefs } from '@/lib/shop-prefs';
 import type { SharedData } from '@/types';
 import { useAuthOptional } from '@/lib/auth';
@@ -41,7 +42,8 @@ const emptyShared: SharedData = {
     categories: [],
     categoryTree: [],
     locations: [],
-    translations: {},
+    // Seed bundled English so first paint never shows raw i18n keys.
+    translations: getLocaleCatalog('en'),
     locale: 'en',
 };
 
@@ -161,7 +163,18 @@ export function BootstrapProvider({ children }: { children: ReactNode }) {
     }, [refresh]);
 
     const shared = useMemo(() => {
-        const base = toShared(data, appName);
+        let base = toShared(data, appName);
+        // Before bootstrap returns, seed the user's preferred locale from localStorage
+        // so cart drawer / header never flash raw keys during API cold starts.
+        if (!data) {
+            const prefs = readShopPrefs();
+            const locale = prefs.locale ?? 'en';
+            base = {
+                ...base,
+                locale,
+                translations: getLocaleCatalog(locale),
+            };
+        }
         if (auth?.user) {
             return {
                 ...base,

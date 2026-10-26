@@ -1,13 +1,18 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useSharedProps } from '@/lib/bootstrap';
+import { mergeTranslations } from '@/lib/locale-catalog';
 
 type Translations = Record<string, string>;
 
 export function useTranslations() {
     const props = useSharedProps();
-    const translations: Translations = props.translations ?? {};
     const locale = props.locale ?? 'en';
+    const translations: Translations = useMemo(
+        () => mergeTranslations(locale, props.translations),
+        [locale, props.translations],
+    );
 
     function t(key: string, params?: Record<string, string | number>): string {
         let value = translations[key] ?? key;

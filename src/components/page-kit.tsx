@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ListingCardSkeleton } from '@/components/listing-card';
 import { Spinner } from '@/components/ui/spinner';
 import { AuthPanel } from '@/components/auth/auth-panel';
 import { Button } from '@/components/ui/button';
@@ -19,18 +20,7 @@ export function ListingGridSkeleton({ count = 8 }: { count?: number }) {
     return (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4">
             {Array.from({ length: count }).map((_, i) => (
-                <div
-                    key={i}
-                    className="overflow-hidden rounded-2xl border border-border/60 bg-card"
-                >
-                    <div className="aspect-square animate-pulse bg-muted/50" />
-                    <div className="space-y-2.5 p-3.5">
-                        <div className="h-2.5 w-1/3 animate-pulse rounded bg-muted/70" />
-                        <div className="h-3.5 w-full animate-pulse rounded bg-muted/70" />
-                        <div className="h-3.5 w-2/3 animate-pulse rounded bg-muted/70" />
-                        <div className="h-4 w-1/2 animate-pulse rounded bg-muted/70" />
-                    </div>
-                </div>
+                <ListingCardSkeleton key={i} />
             ))}
         </div>
     );

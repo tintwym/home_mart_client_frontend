@@ -1,5 +1,5 @@
 import { Link } from '@/lib/app-client';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Package, Settings, UserRound } from 'lucide-react';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -33,26 +33,49 @@ export function UserMenuContent({ user, onOpenLogout }: Props) {
                 <DropdownMenuItem asChild>
                     <Link
                         className="block w-full cursor-pointer"
+                        href={paths.settings.profile}
+                        prefetch
+                        onClick={cleanup}
+                    >
+                        <UserRound className="mr-2 size-4" />
+                        {t('settings.profile')}
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link
+                        className="block w-full cursor-pointer"
+                        href={paths.settings.orders}
+                        prefetch
+                        onClick={cleanup}
+                    >
+                        <Package className="mr-2 size-4" />
+                        {t('settings.orders')}
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link
+                        className="block w-full cursor-pointer"
                         href={paths.settings.root}
                         prefetch
                         onClick={cleanup}
                     >
-                        <Settings className="mr-2" />
+                        <Settings className="mr-2 size-4" />
                         {t('nav.settings')}
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-                <button
-                    type="button"
-                    className="flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                    onClick={onOpenLogout}
-                    data-test="logout-button"
-                >
-                    <LogOut className="mr-2" />
-                    {t('nav.log_out')}
-                </button>
+            <DropdownMenuItem
+                className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+                onSelect={(event) => {
+                    event.preventDefault();
+                    cleanup();
+                    onOpenLogout();
+                }}
+                data-test="logout-button"
+            >
+                <LogOut className="mr-2 size-4" />
+                {t('nav.log_out')}
             </DropdownMenuItem>
         </>
     );

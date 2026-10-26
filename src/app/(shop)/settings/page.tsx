@@ -2,10 +2,13 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { loginHref } from '@/lib/auth-redirect';
+import { LogoutConfirmDialog } from '@/components/logout-confirm-dialog';
 import { PageHeader, PageLoading } from '@/components/page-kit';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useInitials } from '@/hooks/use-initials';
 import {
     User,
     Lock,
@@ -30,8 +33,10 @@ const links = [
 ];
 
 export default function SettingsPage() {
-    const { user, loading, logout } = useAuth();
+    const { user, loading } = useAuth();
     const router = useRouter();
+    const getInitials = useInitials();
+    const [logoutOpen, setLogoutOpen] = useState(false);
 
     useEffect(() => {
         if (!loading && !user) router.replace(loginHref('/settings'));
@@ -40,14 +45,19 @@ export default function SettingsPage() {
     if (loading) return <PageLoading label="Loading settings…" />;
     if (!user) return <PageLoading label="Redirecting…" />;
 
-    const initial = (user.name?.trim() || user.email || '?').charAt(0).toUpperCase();
-
     return (
         <div className="mx-auto max-w-lg">
             <div className="mb-8 flex items-center gap-4 rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/8 via-card to-secondary/10 p-5 shadow-xs">
-                <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-primary text-lg font-bold text-primary-foreground shadow-sm">
-                    {initial}
-                </span>
+                <Avatar className="size-14 shrink-0 rounded-2xl">
+                    <AvatarImage
+                        src={user.avatar ?? undefined}
+                        alt={user.name}
+                        className="rounded-2xl"
+                    />
+                    <AvatarFallback className="rounded-2xl bg-primary text-lg font-bold text-primary-foreground shadow-sm">
+                        {getInitials(user.name)}
+                    </AvatarFallback>
+                </Avatar>
                 <div className="min-w-0">
                     <p className="truncate text-lg font-semibold">{user.name}</p>
                     <p className="truncate text-sm text-muted-foreground">
@@ -86,14 +96,17 @@ export default function SettingsPage() {
             <button
                 type="button"
                 className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/25 px-4 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
-                onClick={async () => {
-                    await logout();
-                    router.push(loginHref('/settings'));
-                }}
+                onClick={() => setLogoutOpen(true)}
+                data-test="settings-logout-button"
             >
                 <LogOut className="size-4" />
                 Log out
             </button>
+
+            <LogoutConfirmDialog
+                open={logoutOpen}
+                onOpenChange={setLogoutOpen}
+            />
         </div>
     );
 }

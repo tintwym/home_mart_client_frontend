@@ -1,34 +1,46 @@
 'use client';
 
 import Link from 'next/link';
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { SiteSearchBar } from '@/components/site-search-bar';
 import { RegionSwitcher } from '@/components/region-switcher';
 import { CurrencySwitcher } from '@/components/currency-switcher';
 import { NotificationDropdown } from '@/components/notification-dropdown';
+import { LogoutConfirmDialog } from '@/components/logout-confirm-dialog';
+import { UserMenuContent } from '@/components/user-menu-content';
 import { useAuth } from '@/lib/auth';
 import { loginHref } from '@/lib/auth-redirect';
 import { useSharedProps } from '@/lib/bootstrap';
 import { useCart } from '@/hooks/use-cart';
+import { useInitials } from '@/hooks/use-initials';
+import { useTranslations } from '@/hooks/use-translations';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
     Heart,
     ShoppingBag,
     MessageSquare,
-    Settings,
     Plus,
     LogIn,
-    User,
 } from 'lucide-react';
+import type { User } from '@/types';
 
 function ShopHeaderInner() {
     const searchParams = useSearchParams();
     const searchQuery = searchParams.get('q')?.trim() ?? '';
-    const { user, logout, loading } = useAuth();
+    const { user, loading } = useAuth();
+    const { t } = useTranslations();
+    const getInitials = useInitials();
     const shared = useSharedProps();
     const { count: cartHookCount } = useCart();
+    const [logoutOpen, setLogoutOpen] = useState(false);
     const cartCount = user
         ? cartHookCount
         : (shared.auth.cartCount ?? shared.auth.cartListingIds?.length ?? 0);
@@ -137,25 +149,41 @@ function ShopHeaderInner() {
 
                         {!loading && user ? (
                             <>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="hidden lg:inline-flex"
-                                    asChild
-                                >
-                                    <Link href="/settings" aria-label="Settings">
-                                        <Settings className="h-5 w-5" />
-                                    </Link>
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="hidden xl:inline-flex"
-                                    onClick={() => void logout()}
-                                >
-                                    <User className="mr-1.5 h-4 w-4" />
-                                    {user.name}
-                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            className="ml-0.5 hidden size-9 rounded-full p-0.5 lg:inline-flex"
+                                            aria-label={t('nav.user_menu')}
+                                        >
+                                            <Avatar className="size-8 overflow-hidden rounded-full">
+                                                <AvatarImage
+                                                    src={user.avatar ?? undefined}
+                                                    alt={user.name}
+                                                />
+                                                <AvatarFallback className="rounded-full bg-primary/15 text-xs font-semibold text-primary">
+                                                    {getInitials(user.name)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent
+                                        className="w-56"
+                                        align="end"
+                                        sideOffset={8}
+                                    >
+                                        <UserMenuContent
+                                            user={user as User}
+                                            onOpenLogout={() =>
+                                                setLogoutOpen(true)
+                                            }
+                                        />
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                <LogoutConfirmDialog
+                                    open={logoutOpen}
+                                    onOpenChange={setLogoutOpen}
+                                />
                             </>
                         ) : null}
 

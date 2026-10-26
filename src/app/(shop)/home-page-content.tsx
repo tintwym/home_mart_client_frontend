@@ -40,6 +40,7 @@ function ListingGrid({
             {items.map((listing, index) => (
                 <motion.div
                     key={listing.id}
+                    className="h-full min-w-0"
                     initial={reduceMotion ? false : { opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
