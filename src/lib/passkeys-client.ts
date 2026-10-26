@@ -22,9 +22,9 @@ export type AuthenticationOptionsResponse =
 export type RegistrationOptionsResponse =
     PasskeyOptionsEnvelope<PublicKeyCredentialCreationOptionsJSON>;
 
-export function unwrapPasskeyOptions<T extends { challenge?: string }>(
+export function unwrapPasskeyOptions(
     payload: unknown,
-): { options: T; state: string } {
+): { options: PublicKeyCredentialRequestOptionsJSON; state: string } {
     if (!payload || typeof payload !== 'object') {
         throw new Error('Invalid passkey options from server.');
     }
@@ -51,7 +51,10 @@ export function unwrapPasskeyOptions<T extends { challenge?: string }>(
         );
     }
 
-    return { options: nested as T, state };
+    return {
+        options: nested as unknown as PublicKeyCredentialRequestOptionsJSON,
+        state,
+    };
 }
 
 export type { AuthenticationResponseJSON, RegistrationResponseJSON };
