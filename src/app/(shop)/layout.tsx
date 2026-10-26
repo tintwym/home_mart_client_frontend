@@ -64,13 +64,13 @@ export default function ShopLayout({
 
     return (
         <LocalizationProvider>
-            <div className="flex min-h-dvh flex-col">
+            <div className="flex min-h-dvh flex-col overflow-x-hidden">
                 <BootstrapErrorBanner />
                 <ShopHeader />
                 <main
                     className={cn(
                         'mx-auto w-full max-w-6xl flex-1 px-4 pb-[calc(5.25rem+env(safe-area-inset-bottom))] sm:px-6 lg:pb-8',
-                        isHome ? 'pt-0 sm:pt-4' : 'py-5 sm:py-6',
+                        isHome ? 'pt-0' : 'py-5 sm:py-6',
                     )}
                 >
                     {mainContent}

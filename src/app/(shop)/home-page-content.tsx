@@ -122,7 +122,7 @@ export function HomePageContent() {
                         className="absolute inset-0 bg-gradient-to-t from-[oklch(0.18_0.03_175_/_0.55)] via-transparent to-transparent"
                     />
 
-                    <div className="relative flex min-h-[min(68vw,22rem)] flex-col justify-end px-5 py-8 sm:min-h-[24rem] sm:px-10 sm:py-12 lg:min-h-[26rem]">
+                    <div className="relative mx-auto flex min-h-[min(72vw,24rem)] w-full max-w-6xl flex-col justify-end px-4 py-10 sm:min-h-[26rem] sm:px-6 sm:py-14 lg:min-h-[28rem]">
                         <motion.div
                             initial={reduceMotion ? false : { opacity: 0, y: 14 }}
                             animate={{ opacity: 1, y: 0 }}

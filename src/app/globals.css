@@ -223,8 +223,15 @@
         @apply relative overflow-hidden rounded-2xl border border-primary/10 bg-gradient-to-br from-primary/12 via-secondary/20 to-accent/12;
     }
 
+    /* Break out of the shop max-w / padding column — edge-to-edge hero */
     .shop-hero-bleed {
-        @apply -mx-4 overflow-hidden rounded-none border-0 sm:-mx-6 sm:rounded-2xl sm:border sm:border-primary/10 lg:mx-0;
+        position: relative;
+        width: 100vw;
+        max-width: 100vw;
+        margin-inline: calc(50% - 50vw);
+        overflow: hidden;
+        border: 0;
+        border-radius: 0;
     }
 
     .shop-pill {
