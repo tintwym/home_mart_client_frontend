@@ -3,6 +3,7 @@
 import { MobileBottomTabBar } from '@/components/mobile-bottom-tab-bar';
 import { ShopHeader } from '@/components/shop-header';
 import { CartDrawer } from '@/components/cart-drawer';
+import { ChatbotWidget } from '@/components/chatbot-widget';
 import { AuthModalLayout } from '@/components/auth-modal-layout';
 import { LocalizationProvider } from '@/components/localization-provider';
 import { isAuthOverlayPath } from '@/lib/auth-overlay-paths';
@@ -77,6 +78,7 @@ export default function ShopLayout({
                 <ShopMobileFooter />
                 <MobileBottomTabBar />
                 <CartDrawer />
+                <ChatbotWidget />
                 {authOverlayOpen && overlayContent ? (
                     <AuthModalLayout key={pathname}>
                         {overlayContent}

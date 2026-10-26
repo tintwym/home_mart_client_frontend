@@ -418,3 +418,25 @@ export async function confirmTwoFactor(payload: {
         body: payload,
     });
 }
+
+export type AssistantHistoryTurn = {
+    role: 'user' | 'model';
+    text: string;
+};
+
+export async function askAssistant(
+    message: string,
+    history: AssistantHistoryTurn[] = [],
+): Promise<string> {
+    const res = await apiFetch<{ reply?: string }>('/api/assistant/chat', {
+        method: 'POST',
+        // Send Bearer when present so the server can personalize; guests still work.
+        auth: true,
+        body: { message, history },
+    });
+    const reply = res.reply?.trim();
+    if (!reply) {
+        throw new ApiError('Empty assistant reply', 502, res);
+    }
+    return reply;
+}
