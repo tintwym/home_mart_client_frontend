@@ -36,7 +36,7 @@ function ListingGrid({
     reduceMotion: boolean | null;
 }) {
     return (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-5 xl:grid-cols-5 2xl:grid-cols-6">
             {items.map((listing, index) => (
                 <motion.div
                     key={listing.id}
@@ -122,7 +122,7 @@ export function HomePageContent() {
                         className="absolute inset-0 bg-gradient-to-t from-[oklch(0.18_0.03_175_/_0.55)] via-transparent to-transparent"
                     />
 
-                    <div className="relative mx-auto flex min-h-[min(72vw,24rem)] w-full max-w-6xl flex-col justify-end px-4 py-10 sm:min-h-[26rem] sm:px-6 sm:py-14 lg:min-h-[28rem]">
+                    <div className="relative flex min-h-[min(72vw,24rem)] w-full flex-col justify-end px-4 py-10 sm:min-h-[26rem] sm:px-6 sm:py-14 lg:min-h-[28rem] lg:px-8 xl:px-10">
                         <motion.div
                             initial={reduceMotion ? false : { opacity: 0, y: 14 }}
                             animate={{ opacity: 1, y: 0 }}

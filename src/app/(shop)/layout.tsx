@@ -69,7 +69,7 @@ export default function ShopLayout({
                 <ShopHeader />
                 <main
                     className={cn(
-                        'mx-auto w-full max-w-6xl flex-1 px-4 pb-[calc(5.25rem+env(safe-area-inset-bottom))] sm:px-6 lg:pb-8',
+                        'w-full flex-1 px-4 pb-[calc(5.25rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pb-8 xl:px-10',
                         isHome ? 'pt-0' : 'py-5 sm:py-6',
                     )}
                 >

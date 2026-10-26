@@ -49,7 +49,7 @@ function ShopHeaderInner() {
 
     return (
         <header className="sticky top-0 z-40 border-b border-border/50 bg-[var(--header-tint)] shadow-[0_1px_0_0_oklch(0.66_0.115_175_/_0.06)] backdrop-blur-xl">
-            <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10">
                 <div className="flex h-12 items-center gap-2 sm:h-14 lg:h-16">
                     <Link
                         href="/"
@@ -215,7 +215,7 @@ export function ShopHeader() {
         <Suspense
             fallback={
                 <header className="sticky top-0 z-40 border-b border-border/50 bg-[var(--header-tint)] backdrop-blur-xl">
-                    <div className="mx-auto min-h-[7.25rem] max-w-6xl px-4 sm:px-6 lg:min-h-16" />
+                    <div className="min-h-[7.25rem] w-full px-4 sm:px-6 lg:min-h-16 lg:px-8 xl:px-10" />
                 </header>
             }
         >

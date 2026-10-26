@@ -498,7 +498,7 @@ export function ListingDetailView({ id }: ListingDetailViewProps) {
 
             {showBuyerActions ? (
                 <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-30 border-t border-border/60 bg-card/95 px-3 py-2.5 backdrop-blur-md lg:hidden">
-                    <div className="mx-auto flex max-w-6xl gap-2">
+                    <div className="mx-auto flex w-full max-w-none gap-2 px-1 sm:px-2">
                         <Button
                             className="flex-1"
                             disabled={busy}
@@ -536,7 +536,7 @@ export function ListingDetailView({ id }: ListingDetailViewProps) {
                             <MessageCircle className="size-4" />
                         </Button>
                     </div>
-                    <ShopTrustStrip className="mx-auto mt-2 max-w-6xl" />
+                    <ShopTrustStrip className="mx-auto mt-2 w-full" />
                 </div>
             ) : listing.is_sold ? (
                 <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-30 border-t border-border/60 bg-card/95 p-3 backdrop-blur-md lg:hidden">
